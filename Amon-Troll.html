@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Among Trolls 🃏</title>
+
+  <meta name="description" content="Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne.">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Among Trolls">
+
+  <!-- Google AdSense -->
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXX"
+    crossorigin="anonymous"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .page {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 360px;
+      z-index: 2;
+    }
+
+    input, button {
+      width: 100%;
+      margin: 6px 0;
+      padding: 6px;
+    }
+
+    .menu button {
+      width: 32%;
+      font-size: 12px;
+    }
+
+    hr {
+      margin: 10px 0;
+    }
+
+    /* PUBS LATERALES */
+    .side-ad {
+      width: 160px;
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .left-ad { left: 10px; }
+    .right-ad { right: 10px; }
+
+    /* MOBILE : PAS DE PUBS LATERALES */
+    @media (max-width: 900px) {
+      .side-ad {
+        display: none;
+      }
+    }
+
+    .end-ad {
+      margin-top: 15px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="page">
+
+  <!-- PUB GAUCHE -->
+  <div class="side-ad left-ad">
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-XXXXXXXXXXXX"
+      data-ad-slot="1111111111"
+      data-ad-format="vertical"></ins>
+  </div>
+
+  <!-- JEU -->
+  <div class="box">
+    <h2>Among Trolls 🃏</h2>
+    <div id="app"></div>
+  </div>
+
+  <!-- PUB DROITE -->
+  <div class="side-ad right-ad">
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-XXXXXXXXXXXX"
+      data-ad-slot="2222222222"
+      data-ad-format="vertical"></ins>
+  </div>
+
+</div>
+
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCOcYbmpg8ULnLZavZFLDlERp3tlKOcdGY",
+  authDomain: "amongtroll-4a3c5.firebaseapp.com",
+  databaseURL: "https://amongtroll-4a3c5-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "amongtroll-4a3c5",
+  storageBucket: "amongtroll-4a3c5.appspot.com",
+  messagingSenderId: "245950843484",
+  appId: "1:245950843484:web:b4f808a0fcbf19d3e67499"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let screen = "home";
+let roomCode = "";
+let name = "";
+let players = [];
+let roles = {};
+
+function generateCode() {
+  return Math.random().toString(36).substring(2,7).toUpperCase();
+}
+
+function assignRoles(list) {
+  let allRoles = ["Imposteur","Escroc","Try-Harder","Try-Harder","Try-Harder"];
+  allRoles.sort(() => Math.random() - 0.5);
+  let obj = {};
+  list.forEach((p,i) => obj[p] = allRoles[i]);
+  return obj;
+}
+
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="menu">
+      <button onclick="screen='home'; render()">Accueil</button>
+      <button onclick="screen='rules'; render()">Règles</button>
+      <button onclick="screen='about'; render()">À propos</button>
+    </div>
+    <hr>
+  `;
+
+  if(screen === "home"){
+    app.innerHTML += `
+      <input id="pseudo" placeholder="Ton pseudo">
+      <button onclick="createRoom()">Créer un salon</button>
+      <input id="code" placeholder="Code du salon">
+      <button onclick="joinRoom()">Rejoindre</button>
+    `;
+  }
+
+  if(screen === "lobby"){
+    app.innerHTML += `
+      <p>Code : <b>${roomCode}</b></p>
+      <ul>${players.map(p => `<li>${p}</li>`).join("")}</ul>
+      ${players.length === 5 
+        ? `<button onclick="startGame()">Démarrer</button>` 
+        : `<p>En attente (${players.length}/5)</p>`}
+    `;
+  }
+
+  if(screen === "role"){
+    app.innerHTML += `
+      <p>Ton rôle : <b>${roles[name]}</b></p>
+      <button onclick="restartGame()">Nouvelle partie</button>
+
+      <div class="end-ad">
+        <ins class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-XXXXXXXXXXXX"
+          data-ad-slot="3333333333"
+          data-ad-format="auto"
+          data-full-width-responsive="true"></ins>
+      </div>
+    `;
+    setTimeout(() => {
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }, 300);
+  }
+
+  if(screen === "rules"){
+    app.innerHTML += `
+      <h3>📜 Règles du jeu</h3>
+      <p>Jeu de rôle caché pour 5 joueurs.</p>
+    `;
+  }
+
+  if(screen === "about"){
+    app.innerHTML += `
+      <h3>ℹ️ À propos</h3>
+      <p>Jeu multijoueur gratuit créé pour le fun 🎮</p>
+    `;
+  }
+}
+
+function createRoom(){
+  name = document.getElementById("pseudo").value.trim();
+  if(!name) return alert("Pseudo requis");
+
+  roomCode = generateCode();
+  players = [name];
+
+  db.ref("rooms/"+roomCode).set({ players, started:false });
+  listenRoom();
+  screen = "lobby";
+  render();
+}
+
+function joinRoom(){
+  name = document.getElementById("pseudo").value.trim();
+  roomCode = document.getElementById("code").value.trim().toUpperCase();
+
+  db.ref("rooms/"+roomCode).get().then(snap=>{
+    if(!snap.exists()) return alert("Salon introuvable");
+    players = snap.val().players || [];
+    if(!players.includes(name)) players.push(name);
+    db.ref("rooms/"+roomCode+"/players").set(players);
+    listenRoom();
+    screen = "lobby";
+    render();
+  });
+}
+
+function listenRoom(){
+  db.ref("rooms/"+roomCode).on("value", snap=>{
+    if(!snap.exists()) return;
+    players = snap.val().players || [];
+    roles = snap.val().roles || {};
+    screen = snap.val().started ? "role" : "lobby";
+    render();
+  });
+}
+
+function startGame(){
+  roles = assignRoles(players);
+  db.ref("rooms/"+roomCode).update({ roles, started:true });
+}
+
+function restartGame(){
+  db.ref("rooms/"+roomCode).update({ started:false, roles:{} });
+}
+
+render();
+</script>
+
+</body>
+</html>
