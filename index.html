@@ -155,16 +155,16 @@ function render() {
   }
 }
 
-// ----------------- CORRECTION CRÉATION DU SALON -----------------
+// ----------------- CRÉATION DU SALON -----------------
 function createRoom(){
   name = document.getElementById("pseudo").value.trim();
   if(!name) return alert("Pseudo requis");
 
-  // Lire et valider le nombre de joueurs
+  // Nombre de joueurs
   maxPlayers = parseInt(document.getElementById("maxPlayersInput").value);
   if(maxPlayers < 2 || maxPlayers > 5) return alert("Nombre de joueurs entre 2 et 5 uniquement");
 
-  // Lire et valider les rôles
+  // Rôles
   const nbImp = parseInt(document.getElementById("nbImposteur").value);
   const nbEsc = parseInt(document.getElementById("nbEscroc").value);
   const nbTH = parseInt(document.getElementById("nbTryHard").value);
