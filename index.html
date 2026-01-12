@@ -16,26 +16,15 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f4f6;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
+    body { font-family: Arial, sans-serif; background: #f3f4f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
     .page { width: 100%; display: flex; justify-content: center; }
     .box { background: white; padding: 20px; border-radius: 12px; width: 360px; z-index: 2; }
     input, button { width: 100%; margin: 6px 0; padding: 6px; }
     .menu button { width: 32%; font-size: 12px; }
     hr { margin: 10px 0; }
-
     .side-ad { width: 160px; position: fixed; top: 50%; transform: translateY(-50%); }
     .left-ad { left: 10px; }
     .right-ad { right: 10px; }
-
     @media (max-width: 900px) { .side-ad { display: none; } }
     .end-ad { margin-top: 15px; text-align: center; }
   </style>
@@ -44,13 +33,8 @@
 <body>
 
 <div class="page">
-
   <div class="side-ad left-ad">
-    <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="ca-pub-4250515135506041"
-      data-ad-slot="1111111111"
-      data-ad-format="vertical"></ins>
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="1111111111" data-ad-format="vertical"></ins>
   </div>
 
   <div class="box">
@@ -59,13 +43,8 @@
   </div>
 
   <div class="side-ad right-ad">
-    <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="ca-pub-4250515135506041"
-      data-ad-slot="2222222222"
-      data-ad-format="vertical"></ins>
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="2222222222" data-ad-format="vertical"></ins>
   </div>
-
 </div>
 
 <script>
@@ -98,15 +77,11 @@ let owner = "";
 let maxPlayers = 5;
 let roleCounts = { Imposteur: 1, Escroc: 1, "Try-Harder": 3 };
 
-function generateCode() {
-  return Math.random().toString(36).substring(2,7).toUpperCase();
-}
+function generateCode() { return Math.random().toString(36).substring(2,7).toUpperCase(); }
 
 function assignRoles(list) {
-  // Crée le tableau de rôles selon les choix
   let allRoles = [];
   for (let r in roleCounts) for (let i=0;i<roleCounts[r];i++) allRoles.push(r);
-
   allRoles.sort(() => Math.random() - 0.5);
   let obj = {};
   list.forEach((p,i) => obj[p] = allRoles[i]);
@@ -128,11 +103,11 @@ function render() {
     app.innerHTML += `
       <input id="pseudo" placeholder="Ton pseudo">
       <label>Nombre de joueurs (2 à 5) :</label>
-      <input id="maxPlayersInput" type="number" min="2" max="5" value="5">
+      <input id="maxPlayersInput" type="number" min="2" max="5" value="${maxPlayers}">
       <h4>Rôles :</h4>
-      <label>Imposteur : <input id="nbImposteur" type="number" min="0" max="5" value="1"></label>
-      <label>Escroc : <input id="nbEscroc" type="number" min="0" max="5" value="1"></label>
-      <label>Try-Harder : <input id="nbTryHard" type="number" min="0" max="5" value="3"></label>
+      <label>Imposteur : <input id="nbImposteur" type="number" min="0" max="5" value="${roleCounts.Imposteur}"></label>
+      <label>Escroc : <input id="nbEscroc" type="number" min="0" max="5" value="${roleCounts.Escroc}"></label>
+      <label>Try-Harder : <input id="nbTryHard" type="number" min="0" max="5" value="${roleCounts["Try-Harder"]}"></label>
       <button onclick="createRoom()">Créer un salon</button>
       <input id="code" placeholder="Code du salon">
       <button onclick="joinRoom()">Rejoindre</button>
@@ -140,13 +115,8 @@ function render() {
   }
 
   if(screen === "lobby"){
-    app.innerHTML += `
-      <p>Code : <b>${roomCode}</b></p>
-      <ul>${players.map(p => `<li>${p}</li>`).join("")}</ul>
-    `;
-
+    app.innerHTML += `<p>Code : <b>${roomCode}</b></p><ul>${players.map(p => `<li>${p}</li>`).join("")}</ul>`;
     if(name === owner){
-      // Crée un bouton pour lancer la partie si le nombre de joueurs est atteint
       const totalRoles = roleCounts.Imposteur + roleCounts.Escroc + roleCounts["Try-Harder"];
       if(players.length === maxPlayers && totalRoles === maxPlayers){
         app.innerHTML += `<button onclick="startGame()">Démarrer la partie</button>`;
@@ -163,8 +133,7 @@ function render() {
       <p>Ton rôle : <b>${roles[name]}</b></p>
       ${name === owner ? `<button onclick="restartGame()">Nouvelle partie</button>` : ""}
       <div class="end-ad">
-        <ins class="adsbygoogle"
-          style="display:block"
+        <ins class="adsbygoogle" style="display:block"
           data-ad-client="ca-pub-4250515135506041"
           data-ad-slot="3333333333"
           data-ad-format="auto"
@@ -175,36 +144,36 @@ function render() {
   }
 
   if(screen === "rules"){
-    app.innerHTML += `
-      <h3>📜 Règles du jeu</h3>
-      <p>
-        Try-Harder : doivent gagner la game.<br>
-        Imposteur : doit perdre la game sans se faire prendre.<br>
-        Escroc : doit se faire passer pour l'imposteur mais gagner la game.
-      </p>
-    `;
+    app.innerHTML += `<h3>📜 Règles du jeu</h3>
+      <p>Try-Harder : doivent gagner la game.<br>
+      Imposteur : doit perdre la game sans se faire prendre.<br>
+      Escroc : doit se faire passer pour l'imposteur mais gagner la game.</p>`;
   }
 
   if(screen === "about"){
-    app.innerHTML += `
-      <h3>ℹ️ À propos</h3>
-      <p>Mode de jeu gratuit créé pour le fun 🎮</p>
-    `;
+    app.innerHTML += `<h3>ℹ️ À propos</h3><p>Mode de jeu gratuit créé pour le fun 🎮</p>`;
   }
 }
 
+// ----------------- CORRECTION CRÉATION DU SALON -----------------
 function createRoom(){
   name = document.getElementById("pseudo").value.trim();
   if(!name) return alert("Pseudo requis");
 
-  // Récupère le nombre max de joueurs et le nombre de rôles
+  // Lire et valider le nombre de joueurs
   maxPlayers = parseInt(document.getElementById("maxPlayersInput").value);
-  roleCounts.Imposteur = parseInt(document.getElementById("nbImposteur").value);
-  roleCounts.Escroc = parseInt(document.getElementById("nbEscroc").value);
-  roleCounts["Try-Harder"] = parseInt(document.getElementById("nbTryHard").value);
+  if(maxPlayers < 2 || maxPlayers > 5) return alert("Nombre de joueurs entre 2 et 5 uniquement");
 
-  const totalRoles = roleCounts.Imposteur + roleCounts.Escroc + roleCounts["Try-Harder"];
-  if(totalRoles !== maxPlayers) return alert("Le total des rôles doit être égal au nombre de joueurs");
+  // Lire et valider les rôles
+  const nbImp = parseInt(document.getElementById("nbImposteur").value);
+  const nbEsc = parseInt(document.getElementById("nbEscroc").value);
+  const nbTH = parseInt(document.getElementById("nbTryHard").value);
+  if(nbImp < 0 || nbEsc < 0 || nbTH < 0) return alert("Rôles positifs uniquement");
+
+  const totalRoles = nbImp + nbEsc + nbTH;
+  if(totalRoles !== maxPlayers) return alert(`Le total des rôles (${totalRoles}) doit être égal au nombre de joueurs (${maxPlayers})`);
+
+  roleCounts = { Imposteur: nbImp, Escroc: nbEsc, "Try-Harder": nbTH };
 
   roomCode = generateCode();
   players = [name];
@@ -230,13 +199,11 @@ function joinRoom(){
 
   db.ref("rooms/"+roomCode).get().then(snap=>{
     if(!snap.exists()) return alert("Salon introuvable");
-
     const data = snap.val();
     players = data.players || [];
     owner = data.owner || "";
     maxPlayers = data.maxPlayers || 5;
     roleCounts = data.roleCounts || { Imposteur:1, Escroc:1, "Try-Harder":3 };
-
     if(!players.includes(name)) players.push(name);
     db.ref("rooms/"+roomCode+"/players").set(players);
     listenRoom();
@@ -275,4 +242,3 @@ render();
 
 </body>
 </html>
-
