@@ -24,26 +24,22 @@
     }
     .page { width: 100%; display: flex; justify-content: center; }
     .box { 
-      background: white; padding: 30px; border-radius: 20px; width: 400px; 
+      background: white; padding: 60px; border-radius: 20px; width: 600px; 
       z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,0.2); 
     }
     input, button { 
       width: 100%; margin: 6px 0; padding: 10px; border-radius: 10px; 
       font-size: 16px; box-sizing: border-box; 
     }
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none; margin: 0; 
-    }
     input[type=number] { 
+      font-size: 16px; padding: 8px 12px; text-align: center; 
+      height: 40px; /* toutes les cases même hauteur */
       -moz-appearance: textfield; 
-    }
-    input[type=number] {
-      font-size: 16px; padding: 8px 12px; 
     }
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
-      width: 24px; height: 24px; 
+      -webkit-appearance: inner-spin-button; /* flèches visibles */
+      width: 24px; height: 24px; /* flèches plus grosses */
     }
     button { 
       border: none; cursor: pointer; background-color: #4f46e5; color: white; transition: 0.3s; 
