@@ -75,7 +75,7 @@ let owner = "";
 
 // Paramètres de la partie
 let maxPlayers = 10;
-let roleCounts = { Imposteur: 2, Escroc: 2, "Try-Harder": 6 };
+let roleCounts = { Imposteur: 1, Escroc: 1, "Try-Harder": 3 };
 
 function generateCode() {
   return Math.random().toString(36).substring(2,7).toUpperCase();
@@ -167,6 +167,15 @@ function createRoom(){
   maxPlayers = parseInt(document.getElementById("maxPlayersInput").value);
   if(maxPlayers < 2 || maxPlayers > 10)
     return alert("Nombre de joueurs entre 2 et 10 uniquement");
+  
+  // Ajustement automatique des rôles si l'utilisateur augmente les joueurs
+if (nbImp + nbEsc + nbTH !== maxPlayers) {
+  const remaining = maxPlayers - (nbImp + nbEsc);
+  if (remaining < 0) {
+    return alert("Trop d'imposteurs / escrocs pour ce nombre de joueurs");
+  }
+  document.getElementById("nbTryHard").value = remaining;
+}
 
   const nbImp = parseInt(document.getElementById("nbImposteur").value);
   const nbEsc = parseInt(document.getElementById("nbEscroc").value);
@@ -248,3 +257,4 @@ render();
 
 </body>
 </html>
+
