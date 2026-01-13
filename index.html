@@ -73,7 +73,7 @@ let players = [];
 let roles = {};
 let owner = "";
 
-// ✅ 2 à 10 joueurs
+// ✅ 2 à 10 joueurs max
 let maxPlayers = 10;
 let roleCounts = { Imposteur: 2, Escroc: 2, "Try-Harder": 6 };
 
@@ -85,7 +85,6 @@ function assignRoles(list) {
   let allRoles = [];
   for (let r in roleCounts)
     for (let i = 0; i < roleCounts[r]; i++) allRoles.push(r);
-
   allRoles.sort(() => Math.random() - 0.5);
   let obj = {};
   list.forEach((p, i) => obj[p] = allRoles[i]);
@@ -106,23 +105,15 @@ function render() {
   if (screen === "home") {
     app.innerHTML += `
       <input id="pseudo" placeholder="Ton pseudo">
-
       <label>Nombre de joueurs (2 à 10) :</label>
       <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}">
 
       <h4>Rôles :</h4>
-      <label>Imposteur :
-        <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}">
-      </label>
-      <label>Escroc :
-        <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}">
-      </label>
-      <label>Try-Harder :
-        <input id="nbTryHard" type="number" min="0" max="10" value="${roleCounts["Try-Harder"]}">
-      </label>
+      <label>Imposteur : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}"></label>
+      <label>Escroc : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}"></label>
+      <label>Try-Harder : <input id="nbTryHard" type="number" min="0" max="10" value="${roleCounts["Try-Harder"]}"></label>
 
       <button onclick="createRoom()">Créer un salon</button>
-
       <input id="code" placeholder="Code du salon">
       <button onclick="joinRoom()">Rejoindre</button>
     `;
@@ -171,6 +162,7 @@ function render() {
   }
 }
 
+// ----------------- CRÉATION DU SALON -----------------
 function createRoom() {
   name = document.getElementById("pseudo").value.trim();
   if (!name) return alert("Pseudo requis");
@@ -261,4 +253,3 @@ render();
 
 </body>
 </html>
-
