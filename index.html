@@ -74,7 +74,7 @@ let roles = {};
 let owner = "";
 
 // ✅ 2 à 10 joueurs max
-let maxPlayers = 10;
+let maxPlayers = 5;
 let roleCounts = { Imposteur: 1, Escroc: 1, "Try-Harder": 3 };
 
 function generateCode() {
@@ -154,17 +154,14 @@ function render() {
   }
 
   if (screen === "rules") {
-    app.innerHTML += `<h3>📜 Règles</h3><p>Conditions de victoire pour chaque rôles.
-    
-    Try-Harder : doit gagner la parite.
-    
-    Imposteur : Doit perdre la partie sans se faire prendre
-    
+    app.innerHTML += `<h3>📜 Règles</h3><p>Conditions de victoire pour chaque rôles.    
+    Try-Harder : doit gagner la parite.                 
+    Imposteur : Doit perdre la partie sans se faire prendre              
     Escroc : Doit se faire passer pour l'imposteur (se faire voter comme étant l'imposteur) mais doit gagner la partie.</p>`;
   }
 
   if (screen === "about") {
-    app.innerHTML += `<h3>ℹ️ À propos</h3><p>Jeu multijoueur gratuit</p>`;
+    app.innerHTML += `<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`;
   }
 }
 
@@ -259,3 +256,4 @@ render();
 
 </body>
 </html>
+
