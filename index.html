@@ -75,7 +75,7 @@ let owner = "";
 
 // ✅ 2 à 10 joueurs
 let maxPlayers = 10;
-let roleCounts = { Imposteur: 1, Escroc: 1, "Try-Harder": 3 };
+let roleCounts = { Imposteur: 2, Escroc: 2, "Try-Harder": 6 };
 
 function generateCode() {
   return Math.random().toString(36).substring(2,7).toUpperCase();
@@ -261,3 +261,4 @@ render();
 
 </body>
 </html>
+
