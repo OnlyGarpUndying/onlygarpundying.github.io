@@ -27,23 +27,21 @@
       background: white; padding: 60px; border-radius: 20px; width: 600px; 
       z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,0.2); 
     }
-    input, button { 
+    input, button, select { 
       width: 100%; margin: 6px 0; padding: 10px; border-radius: 10px; 
       font-size: 16px; box-sizing: border-box; 
     }
     input[type=number] { 
       font-size: 16px; padding: 8px 12px; text-align: center; 
-      height: 40px; /* toutes les cases même hauteur */
+      height: 40px;
       -moz-appearance: textfield; 
     }
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: inner-spin-button; /* flèches visibles */
-      width: 48px; height: 48px; /* flèches plus grosses */
+      -webkit-appearance: inner-spin-button;
+      width: 48px; height: 48px;
     }
-    button { 
-      border: none; cursor: pointer; background-color: #4f46e5; color: white; transition: 0.3s; 
-    }
+    button { border: none; cursor: pointer; background-color: #4f46e5; color: white; transition: 0.3s; }
     button:hover { background-color: #6366f1; transform: scale(1.05); }
     .menu { display: flex; justify-content: space-between; margin-bottom: 10px;
             background: rgba(255,255,255,0.9); padding: 4px; border-radius: 12px; }
@@ -95,18 +93,41 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let screen="home", roomCode="", name="", players=[], roles={}, owner="";
+let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={};
 
-// Salon par défaut 5 joueurs (1 imposteur, 1 escroc, 3 try-harder)
-let maxPlayers=5;
-let roleCounts={Imposteur:1, Escroc:1, "Try-Harder":3};
+// ------------------- Compte local -------------------
+function saveAccount(pseudo, password) {
+  localStorage.setItem("account", JSON.stringify({ pseudo, password }));
+}
+function loadAccount() {
+  const data = localStorage.getItem("account");
+  if(!data) return null;
+  return JSON.parse(data);
+}
+function changePseudo(newPseudo) {
+  const account = loadAccount();
+  if(!account) return;
+  account.pseudo = newPseudo;
+  saveAccount(account.pseudo, account.password);
+}
+function changePassword(newPassword) {
+  const account = loadAccount();
+  if(!account) return;
+  account.password = newPassword;
+  saveAccount(account.pseudo, account.password);
+}
 
+// ------------------- Roles -------------------
 function generateCode(){return Math.random().toString(36).substring(2,7).toUpperCase();}
 function assignRoles(list){let allRoles=[]; for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r); allRoles.sort(()=>Math.random()-0.5); let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]); return obj;}
 function adjustTryHarder(){roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Imposteur+roleCounts.Escroc); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;}
 
+// ------------------- RENDER -------------------
 function render(){
   const app=document.getElementById("app");
+  const account = loadAccount();
+  const savedPseudo = account ? account.pseudo : "";
+
   app.innerHTML=`
     <div class="menu">
       <button onclick="screen='home'; render()">Accueil</button>
@@ -119,7 +140,8 @@ function render(){
   if(screen==="home"){
     adjustTryHarder();
     app.innerHTML+=`
-      <input id="pseudo" placeholder="Ton pseudo">
+      <input id="pseudo" placeholder="Ton pseudo" value="${savedPseudo}">
+      <button onclick="savePseudoFromInput()">Sauvegarder le pseudo</button>
       <label>Nombre de joueurs (2 à 10) :</label>
       <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
 
@@ -143,21 +165,57 @@ function render(){
   }
 
   if(screen==="role"){
-    app.innerHTML+=`<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p>${name===owner?`<button onclick="restartGame()">Nouvelle partie</button>`:""}<div class="end-ad"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="3333333333" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`;
+    app.innerHTML+=`<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p>${name===owner?`<button onclick="restartGame()">Nouvelle partie</button>`:""}<button onclick="startVote()">Commencer le vote</button><div class="end-ad"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="3333333333" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`;
     setTimeout(()=> (adsbygoogle=window.adsbygoogle||[]).push({}),300);
+  }
+
+  if(screen==="vote"){
+    app.innerHTML+=`<h3>Votez pour le rôle de chaque joueur</h3>`;
+    players.forEach(p=>{
+      app.innerHTML+=`<p>${p} : <select id="vote_${p}"><option value="">Abstention</option><option value="Imposteur">Imposteur</option><option value="Escroc">Escroc</option><option value="Try-Harder">Try-Harder</option></select></p>`;
+    });
+    app.innerHTML+=`<button onclick="submitVotes()">Valider le vote</button>`;
+  }
+
+  if(screen==="results"){
+    app.innerHTML+=`<h3>Résultats du vote :</h3>`;
+    const voteCount={};
+    players.forEach(p=>voteCount[p]={Imposteur:0,Escroc:0,"Try-Harder":0});
+    for(const voter in votes){
+      for(const target in votes[voter]){
+        const role = votes[voter][target];
+        if(role) voteCount[target][role]++;
+      }
+    }
+    players.forEach(p=>{
+      app.innerHTML+=`<p>${p} : Imposteur(${voteCount[p].Imposteur}) - Escroc(${voteCount[p].Escroc}) - Try-Harder(${voteCount[p]["Try-Harder"]})</p>`;
+    });
+    if(name===owner) app.innerHTML+=`<button onclick="restartGame()">Nouvelle partie</button>`;
   }
 
   if(screen==="rules"){app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`;}
   if(screen==="about"){app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`;}
 }
 
+// ------------------- Sauvegarde pseudo -------------------
+function savePseudoFromInput(){
+  const pseudo = document.getElementById("pseudo").value.trim();
+  if(!pseudo) return alert("Pseudo requis");
+  const account = loadAccount();
+  const password = account ? account.password : "";
+  saveAccount(pseudo,password);
+  name = pseudo;
+  render();
+}
+
+// ------------------- SALON -------------------
 function createRoom(){
   name=document.getElementById("pseudo").value.trim(); if(!name) return alert("Pseudo requis");
   maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder();
   if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10");
   if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
-  roomCode=generateCode(); players=[name]; owner=name;
-  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts});
+  roomCode=generateCode(); players=[name]; owner=name; votes={};
+  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes});
   listenRoom(); screen="lobby"; render();
 }
 
@@ -166,7 +224,7 @@ function joinRoom(){
   if(!name) return alert("Pseudo requis");
   db.ref("rooms/"+roomCode).get().then(snap=>{
     if(!snap.exists()) return alert("Salon introuvable");
-    const data=snap.val(); players=data.players||[]; owner=data.owner||""; maxPlayers=data.maxPlayers||10; roleCounts=data.roleCounts||roleCounts;
+    const data=snap.val(); players=data.players||[]; owner=data.owner||""; maxPlayers=data.maxPlayers||10; roleCounts=data.roleCounts||roleCounts; votes=data.votes||{};
     if(players.length>=maxPlayers) return alert("Salon complet");
     if(!players.includes(name)) players.push(name); db.ref("rooms/"+roomCode+"/players").set(players);
     listenRoom(); screen="lobby"; render();
@@ -176,18 +234,38 @@ function joinRoom(){
 function listenRoom(){
   db.ref("rooms/"+roomCode).on("value",snap=>{
     if(!snap.exists()) return; const data=snap.val();
-    players=data.players||[]; roles=data.roles||{}; owner=data.owner||""; maxPlayers=data.maxPlayers||10; roleCounts=data.roleCounts||roleCounts;
+    players=data.players||[]; roles=data.roles||{}; owner=data.owner||""; maxPlayers=data.maxPlayers||10; roleCounts=data.roleCounts||roleCounts; votes=data.votes||{};
     screen=data.started?"role":"lobby"; render();
   });
 }
 
 function startGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true});}
-function restartGame(){if(name!==owner) return; db.ref("rooms/"+roomCode).update({started:false,roles:{}});}
+function restartGame(){if(name!==owner) return; db.ref("rooms/"+roomCode).update({started:false,roles:{},votes:{}}); screen="home"; render();}
+
+// ------------------- VOTE -------------------
+function startVote(){
+  if(!votes[name]) votes[name]={};
+  screen="vote";
+  render();
+}
+
+function submitVotes(){
+  if(!votes[name]) votes[name]={};
+  players.forEach(p=>{
+    const select = document.getElementById(`vote_${p}`);
+    if(select) votes[name][p]=select.value;
+  });
+  db.ref("rooms/"+roomCode+"/votes/"+name).set(votes[name]);
+  screen="results";
+  render();
+}
+
+// Auto-load pseudo si compte existe
+const account = loadAccount();
+if(account) name = account.pseudo;
 
 render();
 </script>
 
 </body>
 </html>
-
-
