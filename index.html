@@ -16,10 +16,18 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; background: #f3f4f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    body { font-family: Arial, sans-serif; 
+           background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24);
+           display: flex; justify-content: center; align-items: center; 
+           height: 100vh; margin: 0; transition: background 1s; }
     .page { width: 100%; display: flex; justify-content: center; }
-    .box { background: white; padding: 20px; border-radius: 12px; width: 360px; z-index: 2; }
-    input, button { width: 100%; margin: 6px 0; padding: 6px; }
+    .box { background: white; padding: 20px; border-radius: 16px; width: 360px; z-index: 2;
+           box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    input, button { width: 100%; margin: 6px 0; padding: 6px; border-radius: 8px; }
+    button { border: none; cursor: pointer; background-color: #4f46e5; color: white; transition: 0.3s; }
+    button:hover { background-color: #6366f1; transform: scale(1.05); }
+    .menu { display: flex; justify-content: space-between; margin-bottom: 10px;
+            background: rgba(255,255,255,0.9); padding: 4px; border-radius: 12px; }
     .menu button { width: 32%; font-size: 12px; }
     hr { margin: 10px 0; }
     .side-ad { width: 160px; position: fixed; top: 50%; transform: translateY(-50%); }
@@ -27,6 +35,8 @@
     .right-ad { right: 10px; }
     @media (max-width: 900px) { .side-ad { display: none; } }
     .end-ad { margin-top: 15px; text-align: center; }
+    .role-popup { animation: pop 0.5s ease-out; }
+    @keyframes pop { 0% { transform: scale(0); opacity:0; } 100% { transform: scale(1); opacity:1; } }
   </style>
 </head>
 
@@ -75,26 +85,22 @@ let owner = "";
 
 // Salon par défaut 5 joueurs (1 imposteur, 1 escroc, 3 try-harder)
 let maxPlayers = 5;
-let roleCounts = { Imposteur: 1, Escroc: 1, "Try-Harder": 3 };
+let roleCounts = { Imposteur:1, Escroc:1, "Try-Harder":3 };
 
-function generateCode() {
-  return Math.random().toString(36).substring(2,7).toUpperCase();
-}
-
+function generateCode() { return Math.random().toString(36).substring(2,7).toUpperCase(); }
 function assignRoles(list) {
   let allRoles = [];
-  for (let r in roleCounts)
-    for (let i = 0; i < roleCounts[r]; i++) allRoles.push(r);
-  allRoles.sort(() => Math.random() - 0.5);
-  let obj = {};
-  list.forEach((p, i) => obj[p] = allRoles[i]);
+  for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r);
+  allRoles.sort(()=>Math.random()-0.5);
+  let obj={};
+  list.forEach((p,i)=>obj[p]=allRoles[i]);
   return obj;
 }
 
-// Ajuste automatique de Try-Harder selon maxPlayers - Imposteur - Escroc
+// Ajuste automatique de Try-Harder
 function adjustTryHarder() {
   roleCounts["Try-Harder"] = maxPlayers - (roleCounts.Imposteur + roleCounts.Escroc);
-  if(roleCounts["Try-Harder"] < 0) roleCounts["Try-Harder"] = 0;
+  if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;
 }
 
 // ------------------- RENDER -------------------
@@ -108,37 +114,34 @@ function render() {
     </div>
     <hr>
   `;
-
-  if(screen === "home") {
+  
+  if(screen==="home") {
     adjustTryHarder();
     app.innerHTML += `
       <input id="pseudo" placeholder="Ton pseudo">
       <label>Nombre de joueurs (2 à 10) :</label>
-      <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" 
-        onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
-
+      <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
+      
       <h4>Rôles :</h4>
-      <label>Imposteur : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" 
-        onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
-      <label>Escroc : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" 
-        onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>Imposteur : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>Escroc : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
       <label>Try-Harder : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
-
+      
       <button onclick="createRoom()">Créer un salon</button>
       <input id="code" placeholder="Code du salon">
       <button onclick="joinRoom()">Rejoindre</button>
     `;
   }
 
-  if(screen === "lobby") {
+  if(screen==="lobby") {
     app.innerHTML += `
       <p>Code : <b>${roomCode}</b></p>
-      <ul>${players.map(p => `<li>${p}</li>`).join("")}</ul>
+      <ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul>
       <p>(${players.length}/${maxPlayers})</p>
     `;
-    if(name === owner) {
-      const totalRoles = roleCounts.Imposteur + roleCounts.Escroc + roleCounts["Try-Harder"];
-      if(players.length === maxPlayers && totalRoles === maxPlayers) {
+    if(name===owner){
+      const totalRoles=roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"];
+      if(players.length===maxPlayers && totalRoles===maxPlayers) {
         app.innerHTML += `<button onclick="startGame()">Démarrer la partie</button>`;
       } else {
         app.innerHTML += `<p>⏳ En attente joueurs / rôles</p>`;
@@ -148,9 +151,9 @@ function render() {
     }
   }
 
-  if(screen === "role") {
+  if(screen==="role") {
     app.innerHTML += `
-      <p>Ton rôle : <b>${roles[name]}</b></p>
+      <p class="role-popup">Ton rôle : <b>${roles[name]}</b></p>
       ${name===owner?`<button onclick="restartGame()">Nouvelle partie</button>`:""}
       <div class="end-ad">
         <ins class="adsbygoogle" style="display:block"
@@ -160,10 +163,10 @@ function render() {
           data-full-width-responsive="true"></ins>
       </div>
     `;
-    setTimeout(() => (adsbygoogle = window.adsbygoogle || []).push({}), 300);
+    setTimeout(()=> (adsbygoogle = window.adsbygoogle || []).push({}),300);
   }
 
-  if(screen === "rules") {
+  if(screen==="rules") {
     app.innerHTML += `<h3>📜 Règles</h3>
       <p>
       Try-Harder : doit gagner la partie.<br>
@@ -172,55 +175,46 @@ function render() {
       </p>`;
   }
 
-  if(screen === "about") {
+  if(screen==="about") {
     app.innerHTML += `<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`;
   }
 }
 
 // ------------------- SALON -------------------
 function createRoom() {
-  name = document.getElementById("pseudo").value.trim();
+  name=document.getElementById("pseudo").value.trim();
   if(!name) return alert("Pseudo requis");
-
-  maxPlayers = parseInt(document.getElementById("maxPlayersInput").value);
+  maxPlayers=parseInt(document.getElementById("maxPlayersInput").value);
   adjustTryHarder();
-  if(maxPlayers < 2 || maxPlayers > 10) return alert("Nombre de joueurs entre 2 et 10");
-
-  if(roleCounts.Imposteur + roleCounts.Escroc + roleCounts["Try-Harder"] !== maxPlayers)
+  if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10");
+  if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers)
     return alert("Le total des rôles doit égaler le nombre de joueurs");
 
-  roomCode = generateCode();
-  players = [name];
-  owner = name;
+  roomCode=generateCode();
+  players=[name];
+  owner=name;
 
-  db.ref("rooms/"+roomCode).set({
-    players, owner, started:false, maxPlayers, roleCounts
-  });
-
+  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts});
   listenRoom();
   screen="lobby";
   render();
 }
 
 function joinRoom() {
-  name = document.getElementById("pseudo").value.trim();
-  roomCode = document.getElementById("code").value.trim().toUpperCase();
+  name=document.getElementById("pseudo").value.trim();
+  roomCode=document.getElementById("code").value.trim().toUpperCase();
   if(!name) return alert("Pseudo requis");
 
   db.ref("rooms/"+roomCode).get().then(snap=>{
     if(!snap.exists()) return alert("Salon introuvable");
-
-    const data = snap.val();
-    players = data.players || [];
-    owner = data.owner || "";
-    maxPlayers = data.maxPlayers || 10;
-    roleCounts = data.roleCounts || roleCounts;
-
-    if(players.length >= maxPlayers) return alert("Salon complet");
-
+    const data=snap.val();
+    players=data.players||[];
+    owner=data.owner||"";
+    maxPlayers=data.maxPlayers||10;
+    roleCounts=data.roleCounts||roleCounts;
+    if(players.length>=maxPlayers) return alert("Salon complet");
     if(!players.includes(name)) players.push(name);
     db.ref("rooms/"+roomCode+"/players").set(players);
-
     listenRoom();
     screen="lobby";
     render();
@@ -228,28 +222,28 @@ function joinRoom() {
 }
 
 function listenRoom() {
-  db.ref("rooms/"+roomCode).on("value", snap=>{
+  db.ref("rooms/"+roomCode).on("value",snap=>{
     if(!snap.exists()) return;
-    const data = snap.val();
-    players = data.players || [];
-    roles = data.roles || {};
-    owner = data.owner || "";
-    maxPlayers = data.maxPlayers || 10;
-    roleCounts = data.roleCounts || roleCounts;
-    screen = data.started ? "role" : "lobby";
+    const data=snap.val();
+    players=data.players||[];
+    roles=data.roles||{};
+    owner=data.owner||"";
+    maxPlayers=data.maxPlayers||10;
+    roleCounts=data.roleCounts||roleCounts;
+    screen=data.started?"role":"lobby";
     render();
   });
 }
 
 function startGame() {
-  if(name !== owner) return;
-  roles = assignRoles(players);
-  db.ref("rooms/"+roomCode).update({roles, started:true});
+  if(name!==owner) return;
+  roles=assignRoles(players);
+  db.ref("rooms/"+roomCode).update({roles,started:true});
 }
 
 function restartGame() {
-  if(name !== owner) return;
-  db.ref("rooms/"+roomCode).update({started:false, roles:{}});
+  if(name!==owner) return;
+  db.ref("rooms/"+roomCode).update({started:false,roles:{}});
 }
 
 render();
