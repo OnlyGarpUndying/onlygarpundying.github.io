@@ -8,9 +8,7 @@
   <meta name="robots" content="index, follow">
   <meta name="author" content="Among Trolls">
 
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4250515135506041"
-     crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4250515135506041" crossorigin="anonymous"></script>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -106,12 +104,6 @@ function loadAccount() {
   if(!data) return null;
   return JSON.parse(data);
 }
-function changePseudo(newPseudo) {
-  const account = loadAccount();
-  if(!account) return;
-  account.pseudo = newPseudo;
-  saveAccount(account.pseudo);
-}
 
 // ------------------- Roles et salon -------------------
 let maxPlayers=5;
@@ -172,7 +164,7 @@ function render(){
 
   if(screen==="role"){
     app.innerHTML+=`<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p>`;
-    if(name===owner){app.innerHTML+=`<button onclick="startVote()">Commencer le vote</button>`;}
+    app.innerHTML+=`<button onclick="startVote()">Commencer le vote</button>`;
   }
 
   if(screen==="vote"){
@@ -197,33 +189,28 @@ function render(){
   if(screen==="results"){
     app.innerHTML+="<h3>Résultats du vote</h3>";
 
-    // Tableau récapitulatif
+    // Tableau récapitulatif final
     app.innerHTML+=`
       <table>
         <thead>
           <tr>
             <th>Joueur</th>
             <th>Rôle réel</th>
-            <th>Votes reçus</th>
+            ${players.map(p=>`<th>Votes de ${p}</th>`).join("")}
           </tr>
         </thead>
         <tbody>
-          ${players.map(p=>{
-            let votesReceived = [];
-            for(const voter in votes){
-              if(votes[voter] && votes[voter][p]) votesReceived.push(`${voter}: ${votes[voter][p]}`);
-            }
+          ${players.map(target=>{
             return `<tr>
-              <td>${p}</td>
-              <td>${roles[p] || "?"}</td>
-              <td>${votesReceived.join(", ") || "Aucun"}</td>
+              <td>${target}</td>
+              <td>${roles[target]}</td>
+              ${players.map(voter=>voter!==target ? `<td>${votes[voter] && votes[voter][target] ? votes[voter][target] : "-"}</td>` : `<td>-</td>`).join("")}
             </tr>`;
           }).join("")}
         </tbody>
       </table>
     `;
-
-    if(name===owner){app.innerHTML+=`<button onclick="restartGame()">Nouvelle partie</button>`;}
+    app.innerHTML+=`<button onclick="restartGame()">Nouvelle partie</button>`;
   }
 
   if(screen==="rules"){app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`;}
@@ -276,7 +263,7 @@ function listenRoom(){
 }
 
 function startGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true});}
-function restartGame(){if(name!==owner) return; db.ref("rooms/"+roomCode).update({started:false,roles:{}}); screen="home"; render();}
+function restartGame(){if(name!==owner) return; db.ref("rooms/"+roomCode).update({started:false,roles:{},votes:{}}); votes={}; screen="home"; render();}
 
 // ------------------- Vote -------------------
 function startVote(){screen="vote"; render();}
