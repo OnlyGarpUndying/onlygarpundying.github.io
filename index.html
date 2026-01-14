@@ -1,267 +1,320 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Among Trolls 🃏</title>
+  <meta charset="UTF-8">
+  <title>Among Trolls 🃏</title>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <meta name="description" content="Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne.">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Among Trolls">
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4250515135506041"
- crossorigin="anonymous"></script>
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4250515135506041"
+     crossorigin="anonymous"></script>
 
-<style>
-body{
-  font-family:Arial;
-  background:linear-gradient(135deg,#f3f4f6,#d1d5db,#fbbf24);
-  display:flex;justify-content:center;align-items:center;
-  height:100vh;margin:0;
-}
-.box{
-  background:white;padding:50px;border-radius:20px;
-  width:650px;box-shadow:0 12px 28px rgba(0,0,0,.2)
-}
-input,button,select{
-  width:100%;padding:10px;margin:6px 0;
-  border-radius:10px;font-size:16px
-}
-button{background:#4f46e5;color:white;border:none;cursor:pointer}
-button:hover{background:#6366f1}
-.menu{display:flex;gap:5px}
-.menu button{font-size:12px}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-td,th{border:1px solid #ccc;padding:6px;text-align:center}
-</style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24);
+      display: flex; justify-content: center; align-items: center; 
+      height: 100vh; margin: 0; transition: background 1s; 
+    }
+    .page { width: 100%; display: flex; justify-content: center; }
+    .box { 
+      background: white; padding: 60px; border-radius: 20px; width: 600px; 
+      z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,0.2); 
+    }
+    input, button, select { 
+      width: 100%; margin: 6px 0; padding: 10px; border-radius: 10px; 
+      font-size: 16px; box-sizing: border-box; 
+    }
+    input[type=number] { 
+      font-size: 16px; padding: 8px 12px; text-align: center; 
+      height: 40px; -moz-appearance: textfield; 
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: inner-spin-button; width:48px; height:48px;
+    }
+    button { border: none; cursor: pointer; background-color: #4f46e5; color:white; transition:0.3s;}
+    button:hover { background-color:#6366f1; transform:scale(1.05); }
+    .menu { display:flex; justify-content:space-between; margin-bottom:10px;
+            background: rgba(255,255,255,0.9); padding:4px; border-radius:12px; }
+    .menu button { width:32%; font-size:12px; }
+    hr { margin:10px 0; }
+    .side-ad { width:160px; position:fixed; top:50%; transform:translateY(-50%);}
+    .left-ad { left:10px; }
+    .right-ad { right:10px; }
+    @media (max-width:900px){ .side-ad{ display:none; } }
+    .end-ad { margin-top:15px; text-align:center; }
+    .role-popup { animation: pop 0.5s ease-out; }
+    @keyframes pop { 0%{transform:scale(0);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+  </style>
 </head>
-
 <body>
-<div class="box">
-<h2>Among Trolls 🃏</h2>
-<div id="app"></div>
+<div class="page">
+  <div class="side-ad left-ad">
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="1111111111" data-ad-format="vertical"></ins>
+  </div>
+
+  <div class="box">
+    <h2>Among Trolls 🃏</h2>
+    <div id="app"></div>
+  </div>
+
+  <div class="side-ad right-ad">
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="2222222222" data-ad-format="vertical"></ins>
+  </div>
 </div>
 
 <script>
-/* ---------- Firebase ---------- */
-firebase.initializeApp({
- apiKey:"AIzaSyCOcYbmpg8ULnLZavZFLDlERp3tlKOcdGY",
- databaseURL:"https://amongtroll-4a3c5-default-rtdb.europe-west1.firebasedatabase.app"
-});
-const db=firebase.database();
+(adsbygoogle = window.adsbygoogle || []).push({});
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 
-/* ---------- State ---------- */
-let screen="home",roomCode="",name="",owner="";
-let players=[],roles={},votes={},finishedVotes={},showResults=false;
-let maxPlayers=5;
-let roleCounts={Imposteur:1,Escroc:1,"Try-Harder":3};
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCOcYbmpg8ULnLZavZFLDlERp3tlKOcdGY",
+  authDomain: "amongtroll-4a3c5.firebaseapp.com",
+  databaseURL: "https://amongtroll-4a3c5-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "amongtroll-4a3c5",
+  storageBucket: "amongtroll-4a3c5.appspot.com",
+  messagingSenderId: "245950843484",
+  appId: "1:245950843484:web:b4f808a0fcbf19d3e67499"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-/* ---------- Account ---------- */
+let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={}, votesFinished=[];
+
+// ------------------- Compte local -------------------
 function saveAccount(pseudo){
- localStorage.setItem("account",JSON.stringify({pseudo}));
+  localStorage.setItem("account", JSON.stringify({ pseudo }));
 }
 function loadAccount(){
- const a=localStorage.getItem("account");
- return a?JSON.parse(a):null;
+  const data = localStorage.getItem("account");
+  if(!data) return null;
+  return JSON.parse(data);
 }
 
-/* ---------- Utils ---------- */
-function generateCode(){
- return Math.random().toString(36).substring(2,7).toUpperCase();
-}
-function adjustTryHarder(){
- roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Imposteur+roleCounts.Escroc);
- if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;
-}
-function assignRoles(){
- let arr=[];
- for(let r in roleCounts)
-  for(let i=0;i<roleCounts[r];i++) arr.push(r);
- arr.sort(()=>Math.random()-0.5);
- let o={}; players.forEach((p,i)=>o[p]=arr[i]);
- return o;
-}
+// ------------------- Roles et salon -------------------
+let maxPlayers=5;
+let roleCounts={Imposteur:1, Escroc:1, "Try-Harder":3};
+function generateCode(){return Math.random().toString(36).substring(2,7).toUpperCase();}
+function assignRoles(list){let allRoles=[]; for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r); allRoles.sort(()=>Math.random()-0.5); let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]); return obj;}
+function adjustTryHarder(){roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Imposteur+roleCounts.Escroc); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;}
 
-/* ---------- Render ---------- */
+// ------------------- Render -------------------
 function render(){
- const app=document.getElementById("app");
- const acc=loadAccount();
- app.innerHTML=`
- <div class="menu">
-  <button onclick="screen='home';render()">Accueil</button>
-  <button onclick="screen='rules';render()">Règles</button>
-  <button onclick="screen='about';render()">À propos</button>
- </div><hr>`;
+  const app = document.getElementById("app");
+  const account = loadAccount();
+  const savedPseudo = account ? account.pseudo : "";
 
- if(screen==="home"){
- adjustTryHarder();
- app.innerHTML+=`
- <h3>Compte</h3>
- <input id="pseudo" placeholder="Pseudo" value="${acc?acc.pseudo:""}">
- <button onclick="savePseudo()">Sauvegarder</button>
+  app.innerHTML=`
+    <div class="menu">
+      <button onclick="screen='home'; render()">Accueil</button>
+      <button onclick="screen='rules'; render()">Règles</button>
+      <button onclick="screen='about'; render()">À propos</button>
+    </div>
+    <hr>
+  `;
 
- <h3>Salon</h3>
- <label>Joueurs (2-10)</label>
- <input type="number" min="2" max="10" value="${maxPlayers}"
-  onchange="maxPlayers=parseInt(this.value);adjustTryHarder();render()">
-
- <label>Imposteur</label>
- <input type="number" value="${roleCounts.Imposteur}"
-  onchange="roleCounts.Imposteur=parseInt(this.value);adjustTryHarder();render()">
-
- <label>Escroc</label>
- <input type="number" value="${roleCounts.Escroc}"
-  onchange="roleCounts.Escroc=parseInt(this.value);adjustTryHarder();render()">
-
- <label>Try-Harder</label>
- <input disabled value="${roleCounts["Try-Harder"]}">
-
- <button onclick="createRoom()">Créer un salon</button>
- <input id="code" placeholder="Code salon">
- <button onclick="joinRoom()">Rejoindre</button>`;
- }
-
- if(screen==="lobby"){
- app.innerHTML+=`
- <p>Code : <b>${roomCode}</b></p>
- <ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul>
- <p>${players.length}/${maxPlayers}</p>`;
- if(name===owner && players.length===maxPlayers)
-  app.innerHTML+=`<button onclick="startGame()">Démarrer</button>`;
- }
-
- if(screen==="role"){
- app.innerHTML+=`
- <h3>Ton rôle : ${roles[name]}</h3>
- <button onclick="screen='vote';render()">Voter</button>`;
- }
-
- if(screen==="vote"){
- app.innerHTML+=`<h3>Vote</h3>`;
- players.forEach(p=>{
-  if(p!==name){
-   app.innerHTML+=`
-   <label>${p}
-    <select id="v_${p}">
-     <option></option>
-     <option>Imposteur</option>
-     <option>Escroc</option>
-     <option>Try-Harder</option>
-    </select>
-   </label>`;
+  if(screen==="home"){
+    adjustTryHarder();
+    app.innerHTML+=`
+      <h3>Compte local</h3>
+      <input id="pseudo" placeholder="Ton pseudo" value="${savedPseudo}">
+      <button onclick="savePseudoFromInput()">Sauvegarder le pseudo</button>
+      <hr>
+      <h4>Créer ou rejoindre un salon</h4>
+      <label>Nombre de joueurs (2 à 10) :</label>
+      <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
+      <h4>Rôles :</h4>
+      <label>Imposteur : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>Escroc : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>Try-Harder : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
+      <button onclick="createRoom()">Créer un salon</button>
+      <input id="code" placeholder="Code du salon">
+      <button onclick="joinRoom()">Rejoindre</button>
+    `;
   }
- });
- if(!finishedVotes[name])
-  app.innerHTML+=`<button onclick="finishVote()">Fini de voter</button>`;
- else
-  app.innerHTML+=`<p>⏳ En attente des autres joueurs...</p>`;
- }
 
- if(showResults){
- app.innerHTML+=`
- <h3>Résultats</h3>
- <table>
- <tr><th>Joueur</th><th>Rôle</th><th>Votes reçus</th></tr>
- ${players.map(p=>{
-  let v=Object.entries(votes)
-   .map(([k,o])=>o[p]?`${k}→${o[p]}`:"")
-   .filter(x=>x).join("<br>");
-  return `<tr><td>${p}</td><td>${roles[p]}</td><td>${v||"-"}</td></tr>`;
- }).join("")}
- </table>`;
- if(name===owner)
-  app.innerHTML+=`<button onclick="restart()">Nouvelle partie</button>`;
- }
+  if(screen==="lobby"){
+    app.innerHTML+=`<p>Code : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
+    if(name===owner){
+      const totalRoles=roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"];
+      if(players.length===maxPlayers && totalRoles===maxPlayers){
+        app.innerHTML+=`<button onclick="startGame()">Démarrer la partie</button>`;
+      }else{
+        app.innerHTML+=`<p>⏳ En attente joueurs / rôles</p>`;
+      }
+    }else{
+      app.innerHTML+=`<p>⏳ En attente du créateur de salon</p>`;
+    }
+  }
 
- if(Object.keys(finishedVotes).length===players.length && name===owner && !showResults)
-  app.innerHTML+=`<button onclick="showResultsNow()">Continuer</button>`;
+  if(screen==="role"){
+    app.innerHTML+=`<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p>`;
+    if(!votesFinished.includes(name)){
+      app.innerHTML+=`<button onclick="screen='vote'; render()">Voter</button>`;
+    } else {
+      app.innerHTML+=`<p>⏳ En attente des autres joueurs</p>`;
+    }
+  }
 
- if(screen==="rules")
-  app.innerHTML+=`<p>Imposteur : perdre<br>Escroc : tromper<br>Try-Harder : gagner</p>`;
- if(screen==="about")
-  app.innerHTML+=`<p>Jeu multijoueur gratuit.</p>`;
+  if(screen==="vote"){
+    app.innerHTML+="<h3>Votez pour chaque joueur</h3>";
+    players.forEach(p=>{
+      if(p!==name){
+        app.innerHTML+=`
+          <label>${p} :
+            <select id="vote_${p}">
+              <option value="">--Choisir--</option>
+              <option value="Imposteur">Imposteur</option>
+              <option value="Escroc">Escroc</option>
+              <option value="Try-Harder">Try-Harder</option>
+            </select>
+          </label>
+        `;
+      }
+    });
+    app.innerHTML+=`<button onclick="submitVote()">Finis de voter</button>`;
+  }
+
+  if(screen==="waitVotes"){
+    app.innerHTML="<p>⏳ Tous les joueurs votent...</p>";
+    if(name===owner){
+      db.ref("rooms/"+roomCode+"/votesFinished").once("value").then(snap=>{
+        const finished = snap.val() || [];
+        if(finished.length === players.length){
+          app.innerHTML+="<button onclick='showResults()'>Continuer</button>";
+        }
+      });
+    }
+  }
+
+  if(screen==="results"){
+    app.innerHTML+="<h3>Tableau récapitulatif des votes</h3>";
+    app.innerHTML+="<table border='1' width='100%'><tr><th>Joueur</th><th>Rôle</th>";
+    players.forEach(p=>{
+      if(p!==name) app.innerHTML+=`<th>${p}</th>`;
+    });
+    app.innerHTML+="</tr>";
+    players.forEach(p=>{
+      app.innerHTML+=`<tr><td>${p}</td><td>${roles[p]}</td>`;
+      players.forEach(other=>{
+        if(other!==p) app.innerHTML+=`<td>${votes[other] && votes[other][p] ? votes[other][p] : "-"}</td>`;
+      });
+      app.innerHTML+="</tr>";
+    });
+    app.innerHTML+="</table>";
+    if(name===owner){
+      app.innerHTML+=`<button onclick="restartGame()">Nouvelle partie</button>`;
+    }
+  }
+
+  if(screen==="rules"){
+    app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`;
+  }
+  if(screen==="about"){
+    app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`;
+  }
 }
 
-/* ---------- Actions ---------- */
-function savePseudo(){
- const p=document.getElementById("pseudo").value.trim();
- if(!p) return alert("Pseudo requis");
- saveAccount(p); name=p; render();
+// ------------------- Compte -------------------
+function savePseudoFromInput(){
+  const pseudo=document.getElementById("pseudo").value.trim();
+  if(!pseudo) return alert("Pseudo requis");
+  saveAccount(pseudo);
+  name=pseudo;
+  render();
 }
 
+// ------------------- Salon -------------------
 function createRoom(){
- if(!name) return alert("Pseudo requis");
- roomCode=generateCode();
- players=[name]; owner=name;
- db.ref("rooms/"+roomCode).set({
-  players,owner,started:false,
-  maxPlayers,roleCounts,
-  votes:{},finishedVotes:{},showResults:false
- });
- listenRoom(); screen="lobby"; render();
+  name=document.getElementById("pseudo").value.trim(); 
+  if(!name) return alert("Pseudo requis");
+  maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder();
+  if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10");
+  if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
+  roomCode=generateCode(); players=[name]; owner=name;
+  db.ref("rooms/"+roomCode).set({players,owner,started:false,roleCounts,votes:{},votesFinished:[]});
+  listenRoom(); screen="lobby"; render();
 }
 
 function joinRoom(){
- if(!name) return alert("Pseudo requis");
- roomCode=document.getElementById("code").value.trim().toUpperCase();
- db.ref("rooms/"+roomCode).get().then(s=>{
-  if(!s.exists()) return alert("Introuvable");
-  let d=s.val();
-  if(d.players.length>=d.maxPlayers) return alert("Complet");
-  if(!d.players.includes(name)) d.players.push(name);
-  db.ref("rooms/"+roomCode+"/players").set(d.players);
-  listenRoom(); screen="lobby"; render();
- });
+  name=document.getElementById("pseudo").value.trim(); 
+  roomCode=document.getElementById("code").value.trim().toUpperCase();
+  if(!name) return alert("Pseudo requis");
+  db.ref("rooms/"+roomCode).get().then(snap=>{
+    if(!snap.exists()) return alert("Salon introuvable");
+    const data=snap.val(); 
+    players=data.players||[]; owner=data.owner||""; roleCounts=data.roleCounts||roleCounts;
+    if(!players.includes(name)) players.push(name); db.ref("rooms/"+roomCode+"/players").set(players);
+    listenRoom(); screen="lobby"; render();
+  });
 }
 
 function listenRoom(){
- db.ref("rooms/"+roomCode).on("value",s=>{
-  if(!s.exists()) return;
-  let d=s.val();
-  players=d.players||[];
-  roles=d.roles||{};
-  votes=d.votes||{};
-  finishedVotes=d.finishedVotes||{};
-  showResults=d.showResults||false;
-  owner=d.owner; maxPlayers=d.maxPlayers; roleCounts=d.roleCounts;
-  screen=d.started?"role":"lobby";
-  render();
- });
+  db.ref("rooms/"+roomCode).on("value",snap=>{
+    if(!snap.exists()) return; 
+    const data=snap.val();
+    players=data.players||[]; roles=data.roles||{}; owner=data.owner||""; roleCounts=data.roleCounts||roleCounts;
+    votes=data.votes||{}; votesFinished=data.votesFinished||[];
+    if(data.started && !screen.startsWith("vote") && !screen.startsWith("results")){
+      screen="role";
+    }
+    render();
+  });
 }
 
 function startGame(){
- db.ref("rooms/"+roomCode).update({
-  roles:assignRoles(),
-  started:true,
-  votes:{},finishedVotes:{},showResults:false
- });
+  if(name!==owner) return;
+  roles=assignRoles(players);
+  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votesFinished:[]});
 }
 
-function finishVote(){
- let v={};
- players.forEach(p=>{
-  if(p!==name){
-   v[p]=document.getElementById("v_"+p).value;
-  }
- });
- db.ref("rooms/"+roomCode+"/votes/"+name).set(v);
- db.ref("rooms/"+roomCode+"/finishedVotes/"+name).set(true);
+function submitVote(){
+  const myVote={};
+  players.forEach(p=>{
+    if(p!==name){
+      const v=document.getElementById("vote_"+p).value;
+      myVote[p] = v || "Non voté";
+    }
+  });
+  db.ref("rooms/"+roomCode+"/votes/"+name).set(myVote);
+  db.ref("rooms/"+roomCode+"/votesFinished").once("value").then(snap=>{
+    const finished = snap.val() || [];
+    if(!finished.includes(name)){
+      finished.push(name);
+      db.ref("rooms/"+roomCode+"/votesFinished").set(finished);
+    }
+  });
+  screen="waitVotes";
+  render();
 }
 
-function showResultsNow(){
- db.ref("rooms/"+roomCode).update({showResults:true});
+function showResults(){
+  screen="results";
+  render();
 }
 
-function restart(){
- db.ref("rooms/"+roomCode).update({
-  started:false,roles:{},votes:{},
-  finishedVotes:{},showResults:false
- });
- screen="home"; render();
+function restartGame(){
+  if(name!==owner) return;
+  db.ref("rooms/"+roomCode).update({started:false,roles:{},votes:{},votesFinished:[]});
+  screen="home";
+  render();
 }
 
-/* ---------- Init ---------- */
-const acc=loadAccount();
-if(acc) name=acc.pseudo;
+// Auto-load pseudo si compte existe
+const account = loadAccount();
+if(account) name = account.pseudo;
+
 render();
 </script>
+
 </body>
 </html>
