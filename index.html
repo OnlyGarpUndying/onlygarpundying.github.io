@@ -197,22 +197,37 @@ function render(){
     }
   }
 
-  if(screen==="results"){
-    app.innerHTML+="<h3>Résultats finaux</h3>";
-    app.innerHTML+="<table border='1' style='width:100%;text-align:center'><tr><th>Joueur</th><th>Rôle</th>";
-    players.forEach(p=>app.innerHTML+="<th>"+p+"</th>");
-    app.innerHTML+="</tr>";
-    players.forEach(p=>{
-      app.innerHTML+=`<tr><td>${p}</td><td>${roles[p]}</td>`;
-      players.forEach(voter=>{
-        app.innerHTML+=`<td>${votes[voter] && votes[voter][p]?votes[voter][p]:"-"}</td>`;
-      });
-      app.innerHTML+="</tr>";
+ if(screen==="results"){
+  app.innerHTML+="<h3>Résultats finaux</h3>";
+  
+  // Tableau
+  app.innerHTML+="<table border='1' style='width:100%; text-align:center; border-collapse: collapse;'>";
+  
+  // Ligne d'entête : Joueurs en haut
+  app.innerHTML+="<tr><th>Joueur</th><th>Rôle</th>";
+  players.forEach(p => { app.innerHTML+=`<th>${p}</th>`; });
+  app.innerHTML+="</tr>";
+  
+  // Ligne pour chaque joueur : ce qu'il a voté
+  players.forEach(p => {
+    app.innerHTML+=`<tr><td>${p}</td><td>${roles[p]}</td>`;
+    players.forEach(target=>{
+      if(p===target){ // On ne vote pas pour soi
+        app.innerHTML+="<td>--</td>";
+      }else{
+        const voteValue = votes[p] && votes[p][target] ? votes[p][target] : "-";
+        app.innerHTML+=`<td>${voteValue}</td>`;
+      }
     });
-    if(name===owner){
-      app.innerHTML+=`<button onclick="restartGame()">Nouvelle partie</button>`;
-    }
+    app.innerHTML+="</tr>";
+  });
+  
+  app.innerHTML+="</table>";
+  
+  if(name===owner){
+    app.innerHTML+=`<button onclick="restartGame()">Nouvelle partie</button>`;
   }
+}
 
   if(screen==="rules"){app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`;}
   if(screen==="about"){app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`;}
@@ -307,3 +322,4 @@ render();
 
 </body>
 </html>
+
