@@ -1,59 +1,44 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Among Trolls 🃏</title>
+<meta charset="UTF-8">
+<title>Among Trolls 🃏</title>
 
-  <meta name="description" content="Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne.">
-  <meta name="robots" content="index, follow">
-  <meta name="author" content="Among Trolls">
+<meta name="description" content="Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne.">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Among Trolls">
 
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4250515135506041"
-     crossorigin="anonymous"></script>
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4250515135506041"
+   crossorigin="anonymous"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24);
-      display: flex; justify-content: center; align-items: center; 
-      height: 100vh; margin: 0; transition: background 1s; 
-    }
-    .page { width: 100%; display: flex; justify-content: center; }
-    .box { 
-      background: white; padding: 60px; border-radius: 20px; width: 600px; 
-      z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,0.2); 
-    }
-    input, button, select { 
-      width: 100%; margin: 6px 0; padding: 10px; border-radius: 10px; 
-      font-size: 16px; box-sizing: border-box; 
-    }
-    input[type=number] { 
-      font-size: 16px; padding: 8px 12px; text-align: center; 
-      height: 40px; -moz-appearance: textfield; 
-    }
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: inner-spin-button; width:48px; height:48px;
-    }
-    button { border: none; cursor: pointer; background-color: #4f46e5; color:white; transition:0.3s;}
-    button:hover { background-color:#6366f1; transform:scale(1.05); }
-    .menu { display:flex; justify-content:space-between; margin-bottom:10px;
-            background: rgba(255,255,255,0.9); padding:4px; border-radius:12px; }
-    .menu button { width:32%; font-size:12px; }
-    hr { margin:10px 0; }
-    .side-ad { width:160px; position:fixed; top:50%; transform:translateY(-50%);}
-    .left-ad { left:10px; }
-    .right-ad { right:10px; }
-    @media (max-width:900px){ .side-ad{ display:none; } }
-    .end-ad { margin-top:15px; text-align:center; }
-    .role-popup { animation: pop 0.5s ease-out; }
-    @keyframes pop { 0%{transform:scale(0);opacity:0;} 100%{transform:scale(1);opacity:1;} }
-  </style>
+<style>
+body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24); display:flex;justify-content:center;align-items:center;height:100vh;margin:0;transition:background 1s;}
+.page { width:100%; display:flex; justify-content:center;}
+.box { background:white; padding:60px; border-radius:20px; width:600px; z-index:2; box-shadow:0 12px 28px rgba(0,0,0,0.2);}
+input, button { width:100%; margin:6px 0; padding:10px; border-radius:10px; font-size:16px; box-sizing:border-box;}
+input[type=number] { font-size:16px; padding:8px 12px; text-align:center; height:40px; -moz-appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: inner-spin-button; width:48px;height:48px;}
+button { border:none; cursor:pointer; background-color:#4f46e5; color:white; transition:0.3s;}
+button:hover { background-color:#6366f1; transform:scale(1.05);}
+.menu { display:flex; justify-content:space-between; margin-bottom:10px; background: rgba(255,255,255,0.9); padding:4px; border-radius:12px;}
+.menu button { width:32%; font-size:12px;}
+hr { margin:10px 0;}
+.side-ad { width:160px; position:fixed; top:50%; transform:translateY(-50%);}
+.left-ad { left:10px;}
+.right-ad { right:10px;}
+@media(max-width:900px){.side-ad{display:none;}}
+.end-ad{margin-top:15px; text-align:center;}
+.role-popup { animation: pop 0.5s ease-out;}
+@keyframes pop { 0% { transform: scale(0); opacity:0;} 100% { transform: scale(1); opacity:1; } }
+button.disabled { background-color: grey; cursor: not-allowed; }
+</style>
 </head>
+
 <body>
 <div class="page">
   <div class="side-ad left-ad">
@@ -70,10 +55,7 @@
   </div>
 </div>
 
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({});(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
 <script>
 const firebaseConfig = {
@@ -88,7 +70,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={}, votesFinished=[];
+// Variables globales
+let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={}, votedPlayers=[];
+
+// Rôles
+let maxPlayers=5;
+let roleCounts={Imposteur:1, Escroc:1, "Try-Harder":3};
 
 // ------------------- Compte local -------------------
 function saveAccount(pseudo){
@@ -99,28 +86,35 @@ function loadAccount(){
   if(!data) return null;
   return JSON.parse(data);
 }
+function changePseudo(newPseudo){
+  const account=loadAccount();
+  if(!account) return;
+  account.pseudo=newPseudo;
+  saveAccount(account.pseudo);
+}
 
-// ------------------- Roles et salon -------------------
-let maxPlayers=5;
-let roleCounts={Imposteur:1, Escroc:1, "Try-Harder":3};
-function generateCode(){return Math.random().toString(36).substring(2,7).toUpperCase();}
-function assignRoles(list){let allRoles=[]; for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r); allRoles.sort(()=>Math.random()-0.5); let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]); return obj;}
-function adjustTryHarder(){roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Imposteur+roleCounts.Escroc); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;}
+// ------------------- Rôles / Salon -------------------
+function generateCode(){ return Math.random().toString(36).substring(2,7).toUpperCase(); }
+function assignRoles(list){ 
+  let allRoles=[];
+  for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r);
+  allRoles.sort(()=>Math.random()-0.5);
+  let obj={}; list.forEach((p,i)=> obj[p]=allRoles[i]); 
+  return obj;
+}
+function adjustTryHarder(){ roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Imposteur+roleCounts.Escroc); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0; }
 
-// ------------------- Render -------------------
+// ------------------- RENDER -------------------
 function render(){
-  const app = document.getElementById("app");
+  const app=document.getElementById("app");
   const account = loadAccount();
   const savedPseudo = account ? account.pseudo : "";
 
-  app.innerHTML=`
-    <div class="menu">
-      <button onclick="screen='home'; render()">Accueil</button>
-      <button onclick="screen='rules'; render()">Règles</button>
-      <button onclick="screen='about'; render()">À propos</button>
-    </div>
-    <hr>
-  `;
+  app.innerHTML=`<div class="menu">
+    <button onclick="screen='home'; render()">Accueil</button>
+    <button onclick="screen='rules'; render()">Règles</button>
+    <button onclick="screen='about'; render()">À propos</button>
+  </div><hr>`;
 
   if(screen==="home"){
     adjustTryHarder();
@@ -157,57 +151,36 @@ function render(){
   }
 
   if(screen==="role"){
-    app.innerHTML+=`<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p>`;
-    if(!votesFinished.includes(name)){
-      app.innerHTML+=`<button onclick="screen='vote'; render()">Voter</button>`;
-    } else {
-      app.innerHTML+=`<p>⏳ En attente des autres joueurs</p>`;
-    }
+    app.innerHTML+=`<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p>
+    <button onclick="finishVoting()">Finis de voter</button>`;
   }
 
   if(screen==="vote"){
     app.innerHTML+="<h3>Votez pour chaque joueur</h3>";
     players.forEach(p=>{
       if(p!==name){
-        app.innerHTML+=`
-          <label>${p} :
-            <select id="vote_${p}">
-              <option value="">--Choisir--</option>
-              <option value="Imposteur">Imposteur</option>
-              <option value="Escroc">Escroc</option>
-              <option value="Try-Harder">Try-Harder</option>
-            </select>
-          </label>
-        `;
+        const prev=votes[name] && votes[name][p] ? votes[name][p] : "";
+        app.innerHTML+=`<label>${p} : 
+          <select id="vote_${p}">
+            <option value="">--Choisir--</option>
+            <option value="Imposteur" ${prev==="Imposteur"?'selected':''}>Imposteur</option>
+            <option value="Escroc" ${prev==="Escroc"?'selected':''}>Escroc</option>
+            <option value="Try-Harder" ${prev==="Try-Harder"?'selected':''}>Try-Harder</option>
+          </select>
+        </label>`;
       }
     });
-    app.innerHTML+=`<button onclick="submitVote()">Finis de voter</button>`;
-  }
-
-  if(screen==="waitVotes"){
-    app.innerHTML="<p>⏳ Tous les joueurs votent...</p>";
-    if(name===owner){
-      db.ref("rooms/"+roomCode+"/votesFinished").once("value").then(snap=>{
-        const finished = snap.val() || [];
-        if(finished.length === players.length){
-          app.innerHTML+="<button onclick='showResults()'>Continuer</button>";
-        }
-      });
-    }
+    const everyoneVoted = votedPlayers.length===players.length;
+    app.innerHTML+=`<button id="continueBtn" class="${everyoneVoted?'':'disabled'}" ${everyoneVoted?'':'disabled'} onclick="showResults()">Continuer</button>`;
   }
 
   if(screen==="results"){
-    app.innerHTML+="<h3>Tableau récapitulatif des votes</h3>";
-    app.innerHTML+="<table border='1' width='100%'><tr><th>Joueur</th><th>Rôle</th>";
-    players.forEach(p=>{
-      if(p!==name) app.innerHTML+=`<th>${p}</th>`;
-    });
+    app.innerHTML+="<h3>Résultats du vote</h3><table border=1><tr><th>Joueur</th><th>Rôle</th>";
+    players.forEach(p=>{ app.innerHTML+=`<th>Vote de ${p}</th>`; });
     app.innerHTML+="</tr>";
     players.forEach(p=>{
       app.innerHTML+=`<tr><td>${p}</td><td>${roles[p]}</td>`;
-      players.forEach(other=>{
-        if(other!==p) app.innerHTML+=`<td>${votes[other] && votes[other][p] ? votes[other][p] : "-"}</td>`;
-      });
+      players.forEach(voter=>{ app.innerHTML+=`<td>${votes[voter] && votes[voter][p]?votes[voter][p]:'Non voté'}</td>`; });
       app.innerHTML+="</tr>";
     });
     app.innerHTML+="</table>";
@@ -216,12 +189,8 @@ function render(){
     }
   }
 
-  if(screen==="rules"){
-    app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`;
-  }
-  if(screen==="about"){
-    app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`;
-  }
+  if(screen==="rules"){app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`;}
+  if(screen==="about"){app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`;}
 }
 
 // ------------------- Compte -------------------
@@ -233,7 +202,7 @@ function savePseudoFromInput(){
   render();
 }
 
-// ------------------- Salon -------------------
+// ------------------- SALON -------------------
 function createRoom(){
   name=document.getElementById("pseudo").value.trim(); 
   if(!name) return alert("Pseudo requis");
@@ -241,7 +210,7 @@ function createRoom(){
   if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10");
   if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
   roomCode=generateCode(); players=[name]; owner=name;
-  db.ref("rooms/"+roomCode).set({players,owner,started:false,roleCounts,votes:{},votesFinished:[]});
+  db.ref("rooms/"+roomCode).set({players,owner,started:false,roleCounts,roles:{},votes:{},votedPlayers:[]});
   listenRoom(); screen="lobby"; render();
 }
 
@@ -252,7 +221,7 @@ function joinRoom(){
   db.ref("rooms/"+roomCode).get().then(snap=>{
     if(!snap.exists()) return alert("Salon introuvable");
     const data=snap.val(); 
-    players=data.players||[]; owner=data.owner||""; roleCounts=data.roleCounts||roleCounts;
+    players=data.players||[]; owner=data.owner||""; maxPlayers=data.maxPlayers||10; roleCounts=data.roleCounts||roleCounts;
     if(!players.includes(name)) players.push(name); db.ref("rooms/"+roomCode+"/players").set(players);
     listenRoom(); screen="lobby"; render();
   });
@@ -262,59 +231,50 @@ function listenRoom(){
   db.ref("rooms/"+roomCode).on("value",snap=>{
     if(!snap.exists()) return; 
     const data=snap.val();
-    players=data.players||[]; roles=data.roles||{}; owner=data.owner||""; roleCounts=data.roleCounts||roleCounts;
-    votes=data.votes||{}; votesFinished=data.votesFinished||[];
-    if(data.started && !screen.startsWith("vote") && !screen.startsWith("results")){
-      screen="role";
-    }
+    players=data.players||[]; roles=data.roles||{}; owner=data.owner||""; maxPlayers=data.maxPlayers||10; roleCounts=data.roleCounts||roleCounts;
+    votes=data.votes||{}; votedPlayers=data.votedPlayers||[];
+    screen=data.started?"role":"lobby";
     render();
   });
 }
 
+// ------------------- GAME -------------------
 function startGame(){
-  if(name!==owner) return;
-  roles=assignRoles(players);
-  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votesFinished:[]});
-}
-
-function submitVote(){
-  const myVote={};
-  players.forEach(p=>{
-    if(p!==name){
-      const v=document.getElementById("vote_"+p).value;
-      myVote[p] = v || "Non voté";
-    }
-  });
-  db.ref("rooms/"+roomCode+"/votes/"+name).set(myVote);
-  db.ref("rooms/"+roomCode+"/votesFinished").once("value").then(snap=>{
-    const finished = snap.val() || [];
-    if(!finished.includes(name)){
-      finished.push(name);
-      db.ref("rooms/"+roomCode+"/votesFinished").set(finished);
-    }
-  });
-  screen="waitVotes";
-  render();
-}
-
-function showResults(){
-  screen="results";
-  render();
+  if(name!==owner) return; 
+  roles=assignRoles(players); 
+  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]});
 }
 
 function restartGame(){
   if(name!==owner) return;
-  db.ref("rooms/"+roomCode).update({started:false,roles:{},votes:{},votesFinished:[]});
-  screen="home";
-  render();
+  roles=assignRoles(players); 
+  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]});
 }
 
-// Auto-load pseudo si compte existe
+// ------------------- VOTE -------------------
+function finishVoting(){
+  if(!votes[name]) votes[name]={};
+  players.forEach(p=>{
+    if(p!==name){
+      const v=document.getElementById("vote_"+p).value;
+      votes[name][p]=v || "Non voté";
+    }
+  });
+  if(!votedPlayers.includes(name)) votedPlayers.push(name);
+  db.ref("rooms/"+roomCode).update({votes,votedPlayers});
+  screen="vote"; render();
+}
+
+function showResults(){
+  if(votedPlayers.length!==players.length) return;
+  screen="results"; render();
+}
+
+// Auto-load pseudo si existant
 const account = loadAccount();
 if(account) name = account.pseudo;
 
 render();
 </script>
-
 </body>
 </html>
