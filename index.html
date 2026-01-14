@@ -175,10 +175,6 @@ function render(){
 
   if(screen==="role"){
     app.innerHTML+=`<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p>`;
-    app.innerHTML+=`<button ${votedPlayers.includes(name)?"disabled class='disabled'":""} onclick="startVote()">Voter</button>`;
-  }
-
-  if(screen==="vote"){
     app.innerHTML+="<h3>Votez pour chaque joueur</h3>";
     players.forEach(p=>{
       if(p!==name){
@@ -195,7 +191,10 @@ function render(){
         `;
       }
     });
-    app.innerHTML+=`<button onclick="submitVote()">Finis de voter</button>`;
+    app.innerHTML+=`<button ${votedPlayers.includes(name)?"disabled class='disabled'":""} onclick="submitVote()">Finis de voter</button>`;
+    if(votedPlayers.length===players.length && name===owner){
+      app.innerHTML+=`<button onclick="showResults()">Résultat</button>`;
+    }
   }
 
   if(screen==="results"){
@@ -210,7 +209,6 @@ function render(){
       });
       app.innerHTML+="</tr>";
     });
-    app.innerHTML+="</table>";
     if(name===owner){
       app.innerHTML+=`<button onclick="restartGame()">Nouvelle partie</button>`;
     }
@@ -281,7 +279,6 @@ function startGame(){if(name!==owner) return; roles=assignRoles(players); db.ref
 function restartGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({started:true,roles,votes:{},votedPlayers:[]}); screen="role"; render();}
 
 // ------------------- VOTE -------------------
-function startVote(){screen="vote"; render();}
 function submitVote(){
   const v={};
   players.forEach(p=>{
@@ -293,13 +290,11 @@ function submitVote(){
   votes[name]=v;
   if(!votedPlayers.includes(name)) votedPlayers.push(name);
   db.ref("rooms/"+roomCode).update({votes,votedPlayers});
-  // si tout le monde a voté
-  if(votedPlayers.length===players.length){
-    if(name===owner) screen="results";
-    else screen="role";
-  }else{
-    screen="role";
-  }
+  render();
+}
+
+function showResults(){
+  screen="results";
   render();
 }
 
