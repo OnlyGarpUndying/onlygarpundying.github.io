@@ -4,14 +4,11 @@
 <meta charset="UTF-8">
 <title>Among Trolls 🃏</title>
 
-<meta name="description" content="Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne.">
-<meta name="robots" content="index, follow">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4250515135506041"
  crossorigin="anonymous"></script>
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
 body{
@@ -22,15 +19,13 @@ body{
 }
 .box{
   background:white;padding:50px;border-radius:20px;
-  width:600px;box-shadow:0 12px 28px rgba(0,0,0,.2)
+  width:650px;box-shadow:0 12px 28px rgba(0,0,0,.2)
 }
-input,button{
+input,button,select{
   width:100%;padding:10px;margin:6px 0;
   border-radius:10px;font-size:16px
 }
-button{
-  background:#4f46e5;color:white;border:none;cursor:pointer
-}
+button{background:#4f46e5;color:white;border:none;cursor:pointer}
 button:hover{background:#6366f1}
 .menu{display:flex;gap:5px}
 .menu button{font-size:12px}
@@ -46,20 +41,20 @@ td,th{border:1px solid #ccc;padding:6px;text-align:center}
 </div>
 
 <script>
-const firebaseConfig={
+/* ---------- Firebase ---------- */
+firebase.initializeApp({
  apiKey:"AIzaSyCOcYbmpg8ULnLZavZFLDlERp3tlKOcdGY",
- authDomain:"amongtroll-4a3c5.firebaseapp.com",
- databaseURL:"https://amongtroll-4a3c5-default-rtdb.europe-west1.firebasedatabase.app",
- projectId:"amongtroll-4a3c5"
-};
-firebase.initializeApp(firebaseConfig);
+ databaseURL:"https://amongtroll-4a3c5-default-rtdb.europe-west1.firebasedatabase.app"
+});
 const db=firebase.database();
 
+/* ---------- State ---------- */
 let screen="home",roomCode="",name="",owner="";
-let players=[],roles={},votes={},maxPlayers=5;
+let players=[],roles={},votes={},finishedVotes={},showResults=false;
+let maxPlayers=5;
 let roleCounts={Imposteur:1,Escroc:1,"Try-Harder":3};
 
-/* -------- Compte local -------- */
+/* ---------- Account ---------- */
 function saveAccount(pseudo){
  localStorage.setItem("account",JSON.stringify({pseudo}));
 }
@@ -68,7 +63,7 @@ function loadAccount(){
  return a?JSON.parse(a):null;
 }
 
-/* -------- Utils -------- */
+/* ---------- Utils ---------- */
 function generateCode(){
  return Math.random().toString(36).substring(2,7).toUpperCase();
 }
@@ -81,15 +76,14 @@ function assignRoles(){
  for(let r in roleCounts)
   for(let i=0;i<roleCounts[r];i++) arr.push(r);
  arr.sort(()=>Math.random()-0.5);
- let obj={};
- players.forEach((p,i)=>obj[p]=arr[i]);
- return obj;
+ let o={}; players.forEach((p,i)=>o[p]=arr[i]);
+ return o;
 }
 
-/* -------- Render -------- */
+/* ---------- Render ---------- */
 function render(){
  const app=document.getElementById("app");
- const account=loadAccount();
+ const acc=loadAccount();
  app.innerHTML=`
  <div class="menu">
   <button onclick="screen='home';render()">Accueil</button>
@@ -101,11 +95,11 @@ function render(){
  adjustTryHarder();
  app.innerHTML+=`
  <h3>Compte</h3>
- <input id="pseudo" placeholder="Pseudo" value="${account?account.pseudo:""}">
+ <input id="pseudo" placeholder="Pseudo" value="${acc?acc.pseudo:""}">
  <button onclick="savePseudo()">Sauvegarder</button>
 
  <h3>Salon</h3>
- <label>Joueurs (2–10)</label>
+ <label>Joueurs (2-10)</label>
  <input type="number" min="2" max="10" value="${maxPlayers}"
   onchange="maxPlayers=parseInt(this.value);adjustTryHarder();render()">
 
@@ -135,8 +129,9 @@ function render(){
  }
 
  if(screen==="role"){
- app.innerHTML+=`<h3>Ton rôle : ${roles[name]}</h3>
- <button onclick="startVote()">Voter</button>`;
+ app.innerHTML+=`
+ <h3>Ton rôle : ${roles[name]}</h3>
+ <button onclick="screen='vote';render()">Voter</button>`;
  }
 
  if(screen==="vote"){
@@ -154,18 +149,21 @@ function render(){
    </label>`;
   }
  });
- app.innerHTML+=`<button onclick="submitVote()">Valider</button>`;
+ if(!finishedVotes[name])
+  app.innerHTML+=`<button onclick="finishVote()">Fini de voter</button>`;
+ else
+  app.innerHTML+=`<p>⏳ En attente des autres joueurs...</p>`;
  }
 
- if(screen==="results"){
+ if(showResults){
  app.innerHTML+=`
- <h3>Récapitulatif</h3>
+ <h3>Résultats</h3>
  <table>
  <tr><th>Joueur</th><th>Rôle</th><th>Votes reçus</th></tr>
  ${players.map(p=>{
   let v=Object.entries(votes)
-   .filter(([_,o])=>o[p])
-   .map(([k,o])=>`${k}→${o[p]}`).join("<br>");
+   .map(([k,o])=>o[p]?`${k}→${o[p]}`:"")
+   .filter(x=>x).join("<br>");
   return `<tr><td>${p}</td><td>${roles[p]}</td><td>${v||"-"}</td></tr>`;
  }).join("")}
  </table>`;
@@ -173,16 +171,16 @@ function render(){
   app.innerHTML+=`<button onclick="restart()">Nouvelle partie</button>`;
  }
 
- if(screen==="rules")
-  app.innerHTML+=`<p>Imposteur : perdre discrètement<br>
-  Escroc : se faire passer pour l'imposteur<br>
-  Try-Harder : gagner</p>`;
+ if(Object.keys(finishedVotes).length===players.length && name===owner && !showResults)
+  app.innerHTML+=`<button onclick="showResultsNow()">Continuer</button>`;
 
+ if(screen==="rules")
+  app.innerHTML+=`<p>Imposteur : perdre<br>Escroc : tromper<br>Try-Harder : gagner</p>`;
  if(screen==="about")
   app.innerHTML+=`<p>Jeu multijoueur gratuit.</p>`;
 }
 
-/* -------- Actions -------- */
+/* ---------- Actions ---------- */
 function savePseudo(){
  const p=document.getElementById("pseudo").value.trim();
  if(!p) return alert("Pseudo requis");
@@ -195,7 +193,8 @@ function createRoom(){
  players=[name]; owner=name;
  db.ref("rooms/"+roomCode).set({
   players,owner,started:false,
-  maxPlayers,roleCounts,votes:{}
+  maxPlayers,roleCounts,
+  votes:{},finishedVotes:{},showResults:false
  });
  listenRoom(); screen="lobby"; render();
 }
@@ -220,24 +219,23 @@ function listenRoom(){
   players=d.players||[];
   roles=d.roles||{};
   votes=d.votes||{};
-  owner=d.owner;
-  maxPlayers=d.maxPlayers;
-  roleCounts=d.roleCounts;
+  finishedVotes=d.finishedVotes||{};
+  showResults=d.showResults||false;
+  owner=d.owner; maxPlayers=d.maxPlayers; roleCounts=d.roleCounts;
   screen=d.started?"role":"lobby";
   render();
  });
 }
 
 function startGame(){
- roles=assignRoles();
- db.ref("rooms/"+roomCode).update({roles,started:true});
+ db.ref("rooms/"+roomCode).update({
+  roles:assignRoles(),
+  started:true,
+  votes:{},finishedVotes:{},showResults:false
+ });
 }
 
-function startVote(){
- screen="vote"; render();
-}
-
-function submitVote(){
+function finishVote(){
  let v={};
  players.forEach(p=>{
   if(p!==name){
@@ -245,14 +243,22 @@ function submitVote(){
   }
  });
  db.ref("rooms/"+roomCode+"/votes/"+name).set(v);
- screen="results"; render();
+ db.ref("rooms/"+roomCode+"/finishedVotes/"+name).set(true);
+}
+
+function showResultsNow(){
+ db.ref("rooms/"+roomCode).update({showResults:true});
 }
 
 function restart(){
- db.ref("rooms/"+roomCode).update({started:false,roles:{},votes:{}});
+ db.ref("rooms/"+roomCode).update({
+  started:false,roles:{},votes:{},
+  finishedVotes:{},showResults:false
+ });
  screen="home"; render();
 }
 
+/* ---------- Init ---------- */
 const acc=loadAccount();
 if(acc) name=acc.pseudo;
 render();
