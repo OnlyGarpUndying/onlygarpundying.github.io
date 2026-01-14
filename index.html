@@ -197,35 +197,49 @@ function render(){
     }
   }
 
- if(screen==="results"){
+if(screen==="results"){
   app.innerHTML+="<h3>Résultats finaux</h3>";
-  
-  // Tableau
-  app.innerHTML+="<table border='1' style='width:100%; text-align:center; border-collapse: collapse;'>";
-  
+
+  // Tableau stylé façon Excel
+  app.innerHTML+=`
+    <table style="
+      width:100%;
+      border-collapse: collapse;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    ">
+  `;
+
   // Ligne d'entête : Joueurs en haut
-  app.innerHTML+="<tr><th>Joueur</th><th>Rôle</th>";
-  players.forEach(p => { app.innerHTML+=`<th>${p}</th>`; });
+  app.innerHTML+="<tr style='background:#4f46e5; color:white;'>";
+  app.innerHTML+="<th style='padding:8px; border:1px solid black;'>Joueur</th>";
+  app.innerHTML+="<th style='padding:8px; border:1px solid black;'>Rôle</th>";
+  players.forEach(p => { 
+    app.innerHTML+=`<th style='padding:8px; border:1px solid black;'>${p}</th>`; 
+  });
   app.innerHTML+="</tr>";
-  
+
   // Ligne pour chaque joueur : ce qu'il a voté
-  players.forEach(p => {
-    app.innerHTML+=`<tr><td>${p}</td><td>${roles[p]}</td>`;
+  players.forEach((p, i) => {
+    app.innerHTML+=`<tr style='background:${i%2===0?'#f3f3f3':'#ffffff'};'>`;
+    app.innerHTML+=`<td style='padding:8px; border:1px solid black;'>${p}</td>`;
+    app.innerHTML+=`<td style='padding:8px; border:1px solid black;'>${roles[p]}</td>`;
     players.forEach(target=>{
       if(p===target){ // On ne vote pas pour soi
-        app.innerHTML+="<td>--</td>";
+        app.innerHTML+="<td style='padding:8px; border:1px solid black;'>--</td>";
       }else{
         const voteValue = votes[p] && votes[p][target] ? votes[p][target] : "-";
-        app.innerHTML+=`<td>${voteValue}</td>`;
+        app.innerHTML+=`<td style='padding:8px; border:1px solid black;'>${voteValue}</td>`;
       }
     });
     app.innerHTML+="</tr>";
   });
-  
+
   app.innerHTML+="</table>";
-  
+
+  // Bouton Nouvelle partie pour le créateur
   if(name===owner){
-    app.innerHTML+=`<button onclick="restartGame()">Nouvelle partie</button>`;
+    app.innerHTML+=`<button style="margin-top:10px;" onclick="restartGame()">Nouvelle partie</button>`;
   }
 }
 
@@ -322,4 +336,5 @@ render();
 
 </body>
 </html>
+
 
