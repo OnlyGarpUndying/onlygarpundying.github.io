@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Among Trolls 🃏</title>
 
-  <meta name="description" content="Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne.">
+  <meta name="description" content="Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne à partir de n'impote quel autre jeu.">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Among Trolls">
 
@@ -213,9 +213,8 @@ if(screen==="results"){
   // Ligne d'entête : Joueurs en haut
   app.innerHTML+="<tr style='background:#4f46e5; color:white;'>";
   app.innerHTML+="<th style='padding:8px; border:1px solid black;'>Joueur</th>";
-  app.innerHTML+="<th style='padding:8px; border:1px solid black;'>Rôle</th>";
   players.forEach(p => { 
-    app.innerHTML+=`<th style='padding:8px; border:1px solid black;'>${p}</th>`; 
+    app.innerHTML+=`<th style='padding:8px; border:1px solid black;'>${p} <br>(${roles[p]})</th>`; 
   });
   app.innerHTML+="</tr>";
 
@@ -223,9 +222,8 @@ if(screen==="results"){
   players.forEach((p, i) => {
     app.innerHTML+=`<tr style='background:${i%2===0?'#f3f3f3':'#ffffff'};'>`;
     app.innerHTML+=`<td style='padding:8px; border:1px solid black;'>${p}</td>`;
-    app.innerHTML+=`<td style='padding:8px; border:1px solid black;'>${roles[p]}</td>`;
     players.forEach(target=>{
-      if(p===target){ // On ne vote pas pour soi
+      if(p===target){ 
         app.innerHTML+="<td style='padding:8px; border:1px solid black;'>--</td>";
       }else{
         const voteValue = votes[p] && votes[p][target] ? votes[p][target] : "-";
@@ -242,6 +240,7 @@ if(screen==="results"){
     app.innerHTML+=`<button style="margin-top:10px;" onclick="restartGame()">Nouvelle partie</button>`;
   }
 }
+
 
   if(screen==="rules"){app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`;}
   if(screen==="about"){app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`;}
@@ -336,5 +335,3 @@ render();
 
 </body>
 </html>
-
-
