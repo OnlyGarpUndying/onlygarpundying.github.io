@@ -123,22 +123,6 @@ function joinRoom(){
   });
 }
 
-function listenRoom(){
-  db.ref("rooms/"+roomCode).on("value", snap=>{
-    if(!snap.exists()) return;
-    const data = snap.val();
-    players = data.players || [];
-    roles = data.roles || {};
-    owner = data.owner || "";
-    maxPlayers = data.maxPlayers || maxPlayers;
-    roleCounts = data.roleCounts || roleCounts;
-    votes = data.votes || {};           // Firebase = source de vérité
-    votedPlayers = data.votedPlayers || [];
-    screen = data.started ? "role" : "lobby";
-    render();
-  });
-}
-
 function startGame(){ 
   if(name!==owner) return; 
   roles=assignRoles(players); 
@@ -151,22 +135,54 @@ function restartGame(){
   screen="role"; render();
 }
 
-// ------------------- VOTE -------------------
-function submitVote(){
+// ------------------- VOTE EN LIVE -------------------
+function submitVoteLive(){
   const voteObj = {};
-  players.forEach(p => { if(p!==name){ voteObj[p] = document.getElementById("vote_" + p).value || "Non voté"; } });
+  players.forEach(p => { if(p!==name){ voteObj[p] = document.getElementById("vote_"+p).value || "Non voté"; } });
+  db.ref(`rooms/${roomCode}/votes/${name}`).set(voteObj);
+  db.ref(`rooms/${roomCode}/votedPlayers`).transaction(vp => { if(!vp) vp=[]; if(!vp.includes(name)) vp.push(name); return vp; });
+}
 
-  // On met à jour uniquement le vote du joueur courant
-  db.ref("rooms/"+roomCode+"/votes/"+name).set(voteObj);
-
-  // Ajouter le joueur à votedPlayers de manière atomique
-  db.ref("rooms/"+roomCode+"/votedPlayers").transaction(vp => {
-    if(!vp) vp=[];
-    if(!vp.includes(name)) vp.push(name);
-    return vp;
+function renderRoleScreen(){
+  const app = document.getElementById("app");
+  app.innerHTML = `<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p><h3>Votez pour chaque joueur</h3>`;
+  players.forEach(p => {
+    if(p!==name){
+      const currentVote = votes[name] && votes[name][p] ? votes[name][p] : "";
+      app.innerHTML += `
+        <label>${p} :
+          <select id="vote_${p}">
+            <option value="">--Choisir--</option>
+            <option value="Imposteur" ${currentVote==="Imposteur"?"selected":""}>Imposteur</option>
+            <option value="Escroc" ${currentVote==="Escroc"?"selected":""}>Escroc</option>
+            <option value="Try-Harder" ${currentVote==="Try-Harder"?"selected":""}>Try-Harder</option>
+          </select>
+        </label>
+      `;
+    }
   });
+  const hasVoted = votedPlayers.includes(name);
+  app.innerHTML += `<button ${hasVoted?"disabled class='disabled'":""} onclick="submitVoteLive()">Finis de voter</button>`;
+  if(votedPlayers.length === players.length && name===owner){
+    app.innerHTML += `<button onclick="showResults()">Résultat</button>`;
+  }
+}
 
-  // NE PAS toucher aux variables locales ici, listenRoom() met à jour l'UI
+// ------------------- RENDER ET LISTENER -------------------
+function listenRoom(){
+  db.ref("rooms/"+roomCode).on("value", snap => {
+    if(!snap.exists()) return;
+    const data = snap.val();
+    players = data.players || [];
+    roles = data.roles || {};
+    owner = data.owner || "";
+    maxPlayers = data.maxPlayers || maxPlayers;
+    roleCounts = data.roleCounts || roleCounts;
+    votes = data.votes || {};
+    votedPlayers = data.votedPlayers || [];
+    screen = data.started ? "role" : "lobby";
+    if(screen === "role"){ renderRoleScreen(); } else { render(); }
+  });
 }
 
 function showResults(){ screen="results"; render(); }
@@ -215,27 +231,6 @@ function render(){
       if(players.length===maxPlayers && totalRoles===maxPlayers){ app.innerHTML+=`<button onclick="startGame()">Démarrer la partie</button>`; }
       else { app.innerHTML+=`<p>⏳ En attente joueurs / rôles</p>`; }
     } else { app.innerHTML+=`<p>⏳ En attente du créateur de salon</p>`; }
-  }
-
-  if(screen==="role"){
-    app.innerHTML+=`<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p><h3>Votez pour chaque joueur</h3>`;
-    players.forEach(p => {
-      if(p!==name){
-        const v = votes[name] && votes[name][p] ? votes[name][p] : "";
-        app.innerHTML+=`
-          <label>${p} :
-            <select id="vote_${p}">
-              <option value="">--Choisir--</option>
-              <option value="Imposteur" ${v==="Imposteur"?"selected":""}>Imposteur</option>
-              <option value="Escroc" ${v==="Escroc"?"selected":""}>Escroc</option>
-              <option value="Try-Harder" ${v==="Try-Harder"?"selected":""}>Try-Harder</option>
-            </select>
-          </label>
-        `;
-      }
-    });
-    app.innerHTML+=`<button ${votedPlayers.includes(name)?"disabled class='disabled'":""} onclick="submitVote()">Finis de voter</button>`;
-    if(votedPlayers.length===players.length && name===owner){ app.innerHTML+=`<button onclick="showResults()">Résultat</button>`; }
   }
 
   if(screen==="results"){
