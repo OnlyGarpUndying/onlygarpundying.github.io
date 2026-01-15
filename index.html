@@ -328,9 +328,17 @@ function submitVote(){
       v[p]=val || "Non voté";
     }
   });
-  votes[name]=v;
-  if(!votedPlayers.includes(name)) votedPlayers.push(name);
-  db.ref("rooms/"+roomCode).update({votes,votedPlayers});
+
+  // Mise à jour du vote du joueur courant uniquement
+  db.ref("rooms/"+roomCode+"/votes/"+name).set(v);
+
+  // Mise à jour de la liste des joueurs ayant voté
+  db.ref("rooms/"+roomCode+"/votedPlayers").once("value").then(snap=>{
+    let vp = snap.val() || [];
+    if(!vp.includes(name)) vp.push(name);
+    db.ref("rooms/"+roomCode+"/votedPlayers").set(vp);
+  });
+
   render();
 }
 
