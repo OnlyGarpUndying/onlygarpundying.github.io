@@ -37,19 +37,22 @@ hr { margin: 10px 0; }
   top: 12px;
   right: 12px;
   z-index: 9999;
-  font-size: 26px;
+  font-size: 28px;
   background: white;
   border-radius: 50%;
   border: none;
   padding: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+#langBtn:hover {
+  transform: scale(1.2);
 }
 </style>
 </head>
-
 <body>
 
+<!-- BOUTON DRAPEAU -->
 <button id="langBtn" onclick="toggleLang()">🇫🇷</button>
 
 <div class="page">
@@ -119,7 +122,10 @@ function toggleLang(){
   document.getElementById("langBtn").innerText = lang === "fr" ? "🇫🇷" : "🇬🇧";
   render();
 }
-window.onload = ()=>document.getElementById("langBtn").innerText = lang === "fr" ? "🇫🇷" : "🇬🇧";
+
+window.onload = ()=>{
+  document.getElementById("langBtn").innerText = lang === "fr" ? "🇫🇷" : "🇬🇧";
+};
 </script>
 
 <!-- ================= FIREBASE + GAME ================= -->
@@ -332,4 +338,5 @@ render();
 </script>
 </body>
 </html>
+
 
