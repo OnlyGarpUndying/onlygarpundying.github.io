@@ -176,10 +176,11 @@ function joinRoom(){
     listenRoom(); screen="lobby"; render();
   });
 }
+<script>
 function startGame(){ 
   if(name!==owner) return; 
   roles=assignRoles(players); 
-  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[], resultsShown:false}); 
+  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[],resultsShown:false}); 
 }
 
 function restartGame(){ 
@@ -194,7 +195,6 @@ function restartGame(){
   });
 }
 
-/* =============== LIVE VOTE =============== */
 function submitVoteLive(){
   const voteObj = {};
   players.forEach(p => { 
@@ -210,19 +210,18 @@ function submitVoteLive(){
   });
 }
 
-/* =============== RENDER ROLE SCREEN =============== */
 function renderRoleScreen(){
   const app = document.getElementById("app");
-  app.innerHTML = `<p class="role-popup">${t("home")} : <b>${roleName(roles[name])}</b></p><h3>${t("finishVote")}</h3>`;
+  app.innerHTML = `<p class="role-popup">${t("home")} : <b>${roles[name]}</b></p><h3>${t("finishVote")}</h3>`;
   players.forEach(p=>{
     if(p!==name){
       const currentVote = votes[name] && votes[name][p] ? votes[name][p] : "";
       app.innerHTML+=`<label>${p} :
         <select id="vote_${p}">
           <option value="">--${t("roles")}--</option>
-          <option value="Imposteur" ${currentVote==="Imposteur"?"selected":""}>${roleName("Imposteur")}</option>
-          <option value="Escroc" ${currentVote==="Escroc"?"selected":""}>${roleName("Escroc")}</option>
-          <option value="Try-Harder" ${currentVote==="Try-Harder"?"selected":""}>${roleName("Try-Harder")}</option>
+          <option value="Imposteur" ${currentVote==="Imposteur"?"selected":""}>${i18n[lang].roleOptions["Imposteur"]}</option>
+          <option value="Escroc" ${currentVote==="Escroc"?"selected":""}>${i18n[lang].roleOptions["Escroc"]}</option>
+          <option value="Try-Harder" ${currentVote==="Try-Harder"?"selected":""}>${i18n[lang].roleOptions["Try-Harder"]}</option>
         </select>
       </label>`;
     }
@@ -232,7 +231,6 @@ function renderRoleScreen(){
   if(votedPlayers.length===players.length && name===owner) app.innerHTML+=`<button onclick="showResults()">${t("results")}</button>`;
 }
 
-/* =============== SHOW RESULTS =============== */
 function showResults(){
   if(name===owner) {
     db.ref("rooms/"+roomCode).update({resultsShown:true});
@@ -241,7 +239,6 @@ function showResults(){
   render();
 }
 
-/* =============== RENDER & LISTENER =============== */
 function listenRoom(){
   db.ref("rooms/"+roomCode).on("value", snap=>{
     if(!snap.exists()) return;
@@ -253,25 +250,25 @@ function listenRoom(){
     roleCounts = data.roleCounts || roleCounts;
     votes = data.votes || {};
     votedPlayers = data.votedPlayers || [];
-    // Gestion écran résultats synchronisé
+    
     if(data.resultsShown) screen="results";
     else screen = data.started ? "role" : "lobby";
+
     if(screen==="role") renderRoleScreen(); else render();
   });
 }
 
-/* =============== MAIN RENDER =============== */
 function render(){
   const app=document.getElementById("app");
-  const account=loadAccount(); const savedPseudo=account?account.pseudo:"";
+  const account=loadAccount(); 
+  const savedPseudo=account?account.pseudo:"";
 
-  let showMenu = (screen!=="role" && screen!=="results") || screen==="home";
-
+  let showFullMenu = (screen!=="role"); // Affiche tout sauf pendant la partie
   app.innerHTML=`<div class="menu">
     <button onclick="screen='home'; render()">${t("home")}</button>
-    ${screen==="home" || screen==="lobby" ? `<button onclick="screen='rules'; render()">${t("rules")}</button>
-    <button onclick="screen='about'; render()">${t("about")}</button>
-    <button onclick="screen='description'; render()">${t("description")}</button>` : ""}
+    ${showFullMenu?`<button onclick="screen='rules'; render()">${t("rules")}</button>`:""}
+    ${showFullMenu?`<button onclick="screen='about'; render()">${t("about")}</button>`:""}
+    ${showFullMenu?`<button onclick="screen='description'; render()">${t("description")}</button>`:""}
   </div><hr>`;
 
   if(screen==="home"){
@@ -285,9 +282,9 @@ function render(){
       <label>${t("players")} :</label>
       <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
       <h4>${t("roles")} :</h4>
-      <label>${roleName("Imposteur")} : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
-      <label>${roleName("Escroc")} : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
-      <label>${roleName("Try-Harder")} : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
+      <label>${i18n[lang].roleOptions["Imposteur"]} : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>${i18n[lang].roleOptions["Escroc"]} : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>${i18n[lang].roleOptions["Try-Harder"]} : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
       <button onclick="createRoom()">${t("createRoom")}</button>
       <input id="code" placeholder="${t("roomCode")}">
       <button onclick="joinRoom()">${t("join")}</button>
@@ -312,7 +309,7 @@ function render(){
     <table style="width:100%;border-collapse: collapse;font-family: Arial, sans-serif;text-align:center;margin-top:10px;">
       <thead><tr style="background:#4f46e5;color:white;">
         <th style="border:1px solid #000;padding:8px;">${t("pseudo")}</th>
-        ${players.map(p=>`<th style="border:1px solid #000;padding:8px;">${p}<br>(${roleName(roles[p])})</th>`).join('')}
+        ${players.map(p=>`<th style="border:1px solid #000;padding:8px;">${p}<br>(${roles[p]})</th>`).join('')}
       </tr></thead>
       <tbody>
       ${players.map((p,i)=>`<tr style="background:${i%2===0?'#f9f9f9':'#ffffff'};">
@@ -329,11 +326,8 @@ function render(){
   }
 }
 
-/* =============== AUTO LOAD PSEUDO =============== */
-const account = loadAccount(); if(account) name=account.pseudo;
+const account = loadAccount(); 
+if(account) name=account.pseudo;
 document.getElementById("langBtn").innerText = lang==="fr"?"🇫🇷":"🇬🇧";
 render();
 </script>
-</body>
-</html>
-
