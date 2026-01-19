@@ -48,7 +48,7 @@
     .menu { 
       display: flex; 
       justify-content: space-between; 
-      gap: 8px; /* Ajout de l'espacement entre boutons */
+      gap: 8px; 
       margin-bottom: 10px;
       background: rgba(255,255,255,0.9); 
       padding: 6px; 
@@ -216,7 +216,6 @@ function render(){
       app.innerHTML+=`<button onclick="showResults()">Résultat</button>`;
     }
   }
-
   if(screen==="results"){
     app.innerHTML+="<h3>Résultats finaux</h3>";
     app.innerHTML+=`
@@ -276,7 +275,7 @@ function createRoom(){
   if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10");
   if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
   roomCode=generateCode(); players=[name]; owner=name;
-  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[]});
+  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[], screen:"lobby"});
   listenRoom(); screen="lobby"; render();
 }
 
@@ -310,14 +309,24 @@ function listenRoom(){
     roleCounts=data.roleCounts||roleCounts;
     votes=data.votes||{};
     votedPlayers=data.votedPlayers||[];
-    screen=data.started?"role":"lobby"; 
+    screen=data.screen || (data.started?"role":"lobby"); 
     render();
   });
 }
 
 // ------------------- GAME -------------------
-function startGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]});}
-function restartGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({started:true,roles,votes:{},votedPlayers:[]}); screen="role"; render();}
+function startGame(){
+  if(name!==owner) return; 
+  roles=assignRoles(players); 
+  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[], screen:"role"});
+}
+
+function restartGame(){
+  if(name!==owner) return; 
+  roles=assignRoles(players); 
+  db.ref("rooms/"+roomCode).update({started:true,roles,votes:{},votedPlayers:[], screen:"role"});
+  render();
+}
 
 // ------------------- VOTE -------------------
 function submitVote(){
@@ -342,9 +351,9 @@ function submitVote(){
   render();
 }
 
+// ------------------- RÉSULTATS SYNC -------------------
 function showResults(){
-  screen="results";
-  render();
+  db.ref("rooms/"+roomCode+"/screen").set("results");
 }
 
 // Auto-load pseudo si compte existe
