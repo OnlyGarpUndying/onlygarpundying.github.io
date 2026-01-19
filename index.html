@@ -126,6 +126,7 @@ function toggleLang(){
   document.getElementById("langBtn").innerText = lang==="fr"?"🇫🇷":"🇬🇧";
   render();
 }
+
 /* =============== UTILS =============== */
 function saveAccount(pseudo){ localStorage.setItem("account", JSON.stringify({pseudo})); }
 function loadAccount(){ const data=localStorage.getItem("account"); return data ? JSON.parse(data) : null; }
@@ -141,7 +142,9 @@ function adjustTryHarder(){ roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Impo
 function savePseudoFromInput(){
   const pseudo=document.getElementById("pseudo").value.trim();
   if(!pseudo) return alert(t("pseudoRequired"));
-  saveAccount(pseudo); name=pseudo; render();
+  saveAccount(pseudo);
+  name=pseudo;
+  render();
 }
 
 function createRoom(){
@@ -151,7 +154,7 @@ function createRoom(){
   if(maxPlayers<2||maxPlayers>10) return alert(t("players"));
   if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
   roomCode=generateCode(); players=[name]; owner=name;
-  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[]});
+  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[], resultsShown:false});
   listenRoom(); screen="lobby"; render();
 }
 
@@ -173,16 +176,33 @@ function joinRoom(){
     listenRoom(); screen="lobby"; render();
   });
 }
+function startGame(){ 
+  if(name!==owner) return; 
+  roles=assignRoles(players); 
+  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[], resultsShown:false}); 
+}
 
-function startGame(){ if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); }
-function restartGame(){ if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); screen="role"; render(); }
+function restartGame(){ 
+  if(name!==owner) return; 
+  roles=assignRoles(players); 
+  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[], resultsShown:false}); 
+  screen="role"; render(); 
+}
 
 /* =============== LIVE VOTE =============== */
 function submitVoteLive(){
   const voteObj = {};
-  players.forEach(p => { if(p!==name){ voteObj[p] = document.getElementById("vote_"+p).value || t("waiting"); } });
+  players.forEach(p => { 
+    if(p!==name){ 
+      voteObj[p] = document.getElementById("vote_"+p).value || t("waiting"); 
+    } 
+  });
   db.ref(`rooms/${roomCode}/votes/${name}`).set(voteObj);
-  db.ref(`rooms/${roomCode}/votedPlayers`).transaction(vp => { if(!vp) vp=[]; if(!vp.includes(name)) vp.push(name); return vp; });
+  db.ref(`rooms/${roomCode}/votedPlayers`).transaction(vp => { 
+    if(!vp) vp=[]; 
+    if(!vp.includes(name)) vp.push(name); 
+    return vp; 
+  });
 }
 
 /* =============== RENDER ROLE SCREEN =============== */
@@ -207,6 +227,15 @@ function renderRoleScreen(){
   if(votedPlayers.length===players.length && name===owner) app.innerHTML+=`<button onclick="showResults()">${t("results")}</button>`;
 }
 
+/* =============== SHOW RESULTS =============== */
+function showResults(){
+  if(name===owner) {
+    db.ref("rooms/"+roomCode).update({resultsShown:true});
+  }
+  screen="results";
+  render();
+}
+
 /* =============== RENDER & LISTENER =============== */
 function listenRoom(){
   db.ref("rooms/"+roomCode).on("value", snap=>{
@@ -219,22 +248,25 @@ function listenRoom(){
     roleCounts = data.roleCounts || roleCounts;
     votes = data.votes || {};
     votedPlayers = data.votedPlayers || [];
-    screen = data.started ? "role" : "lobby";
+    // Gestion écran résultats synchronisé
+    if(data.resultsShown) screen="results";
+    else screen = data.started ? "role" : "lobby";
     if(screen==="role") renderRoleScreen(); else render();
   });
 }
-
-function showResults(){ screen="results"; render(); }
 
 /* =============== MAIN RENDER =============== */
 function render(){
   const app=document.getElementById("app");
   const account=loadAccount(); const savedPseudo=account?account.pseudo:"";
+
+  let showMenu = (screen!=="role" && screen!=="results") || screen==="home";
+
   app.innerHTML=`<div class="menu">
     <button onclick="screen='home'; render()">${t("home")}</button>
-    ${screen!=="role"?`<button onclick="screen='rules'; render()">${t("rules")}</button>
+    ${screen==="home" || screen==="lobby" ? `<button onclick="screen='rules'; render()">${t("rules")}</button>
     <button onclick="screen='about'; render()">${t("about")}</button>
-    <button onclick="screen='description'; render()">${t("description")}</button>`:""}
+    <button onclick="screen='description'; render()">${t("description")}</button>` : ""}
   </div><hr>`;
 
   if(screen==="home"){
