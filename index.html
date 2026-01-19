@@ -94,7 +94,7 @@ function savePseudoFromInput(){
 
 function createRoom(){
   name=document.getElementById("pseudo").value.trim(); 
-  if(!name) return alert("Pseudo requis");
+  if(!name) return alert("Pseudo requis / Username required");
   maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder();
   if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10");
   if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
@@ -106,16 +106,16 @@ function createRoom(){
 function joinRoom(){
   name=document.getElementById("pseudo").value.trim(); 
   roomCode=document.getElementById("code").value.trim().toUpperCase();
-  if(!name) return alert("Pseudo requis");
+  if(!name) return alert("Pseudo requis / Username required");
   db.ref("rooms/"+roomCode).get().then(snap=>{
-    if(!snap.exists()) return alert("Salon introuvable");
+    if(!snap.exists()) return alert("Salon introuvable / Salon not found");
     const data=snap.val(); 
     players=data.players||[]; owner=data.owner||""; 
     maxPlayers=data.maxPlayers||maxPlayers; 
     roleCounts=data.roleCounts||roleCounts;
     votes=data.votes||{};
     votedPlayers=data.votedPlayers||[];
-    if(players.length>=maxPlayers) return alert("Salon complet");
+    if(players.length>=maxPlayers) return alert("Salon complet / Complete  room");
     if(!players.includes(name)) players.push(name); 
     db.ref("rooms/"+roomCode+"/players").set(players);
     listenRoom(); screen="lobby"; render();
@@ -219,9 +219,9 @@ function render(){
     `;
   }
 
-  if(screen==="description"){ app.innerHTML+=`<h3>📝 Description</h3><p>Among Trolls est un mode de jeu multijoueur de rôle caché, jouable gratuitement en ligne associer à n'importe quel jeu d'équipe.</p>`; }
+  if(screen==="description"){ app.innerHTML+=`<h3>📝 Description</h3><p>Among Trolls est un mode de jeu multijoueur de rôle caché, jouable gratuitement en ligne associer à n'importe quel jeu d'équipe. / Among Trolls is a free-to-play online hidden role multiplayer game that can be played with any team-based game.</p>`; }
   if(screen==="rules"){ app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie. / Try-Harder: must win the game.<br>Imposteur : doit perdre la partie sans se faire repérer. / Impostor: must lose the game without being detected.<br>Escroc : doit se faire passer pour l'imposteur et gagner la partie. / Cheater: must pretend to be the impostor and win the game.</p>`; }
-  if(screen==="about"){ app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`; }
+  if(screen==="about"){ app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit / Free multiplayer mini-game</p>`; }
 
   if(screen==="lobby"){
     app.innerHTML+=`<p>Code : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
@@ -264,3 +264,4 @@ render();
 </script>
 </body>
 </html>
+
