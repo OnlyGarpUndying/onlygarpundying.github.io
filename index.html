@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -18,8 +17,9 @@
 body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: background 1s; }
 .page { width: 100%; display: flex; justify-content: center; }
 .box { background: white; padding: 60px; border-radius: 20px; width: 600px; z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,0.2); }
-input, button, select { width: 100%; margin: 6px 0; padding: 10px; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-input[type=number] { text-align: center; }
+input, button { width: 100%; margin: 6px 0; padding: 10px; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+input[type=number] { font-size: 16px; padding: 8px 12px; text-align: center; height: 40px; -moz-appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: inner-spin-button; width: 48px; height: 48px; }
 button { border: none; cursor: pointer; background-color: #4f46e5; color: white; transition: 0.3s; }
 button:hover { background-color: #6366f1; transform: scale(1.05); }
 .menu { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 10px; background: rgba(255,255,255,0.9); padding: 6px; border-radius: 12px; }
@@ -33,27 +33,22 @@ hr { margin: 10px 0; }
 @keyframes pop { 0% { transform: scale(0); opacity:0; } 100% { transform: scale(1); opacity:1; } }
 .disabled { background-color: #a1a1aa !important; cursor: not-allowed !important; }
 
+/* Lang button (drapeau) */
 #langBtn {
   position: fixed;
   top: 12px;
   right: 12px;
-  z-index: 9999;
-  font-size: 28px;
-  background: white;
-  border-radius: 50%;
+  z-index: 999;
+  padding: 6px 10px;
+  border-radius: 12px;
   border: none;
-  padding: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-#langBtn:hover {
-  transform: scale(1.2);
+  font-size: 20px;
 }
 </style>
 </head>
 <body>
 
-<!-- BOUTON DRAPEAU -->
 <button id="langBtn" onclick="toggleLang()">🇫🇷</button>
 
 <div class="page">
@@ -76,60 +71,6 @@ hr { margin: 10px 0; }
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<!-- ================= LANG ================= -->
-<script>
-let lang = localStorage.getItem("lang") || "fr";
-
-const i18n = {
-  fr: {
-    home:"Accueil", rules:"Règles", about:"À propos", description:"Description",
-    localAccount:"Compte local", pseudo:"Ton pseudo", savePseudo:"Sauvegarder le pseudo",
-    createJoin:"Créer ou rejoindre un salon", players:"Nombre de joueurs (2 à 10)",
-    roles:"Rôles", createRoom:"Créer un salon", join:"Rejoindre",
-    waiting:"⏳ En attente joueurs / rôles", waitingOwner:"⏳ En attente du créateur de salon",
-    start:"Démarrer la partie", finishVote:"Finis de voter", results:"Résultat",
-    finalResults:"Résultats finaux",
-    descriptionText:"Among Trolls est un mode de jeu multijoueur de rôle caché, jouable gratuitement en ligne associer à n'importe quel jeu d'équipe.",
-    rulesText:"Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner la partie.",
-    aboutText:"Mini-jeu multijoueur gratuit",
-    pseudoRequired:"Pseudo requis",
-    roomNotFound:"Salon introuvable",
-    roomFull:"Salon complet",
-    playersLimit:"Nombre de joueurs entre 2 et 10"
-  },
-  en: {
-    home:"Home", rules:"Rules", about:"About", description:"Description",
-    localAccount:"Local account", pseudo:"Your nickname", savePseudo:"Save nickname",
-    createJoin:"Create or join a room", players:"Number of players (2 to 10)",
-    roles:"Roles", createRoom:"Create room", join:"Join",
-    waiting:"⏳ Waiting for players / roles", waitingOwner:"⏳ Waiting for host",
-    start:"Start game", finishVote:"Finish voting", results:"Results",
-    finalResults:"Final results",
-    descriptionText:"Among Trolls is a free online multiplayer hidden-role game.",
-    rulesText:"Try-Harder: must win the game.<br>Impostor: must lose without being detected.<br>Swindler: pretends to be the impostor and wins.",
-    aboutText:"Free multiplayer mini-game",
-    pseudoRequired:"Nickname required",
-    roomNotFound:"Room not found",
-    roomFull:"Room is full",
-    playersLimit:"Number of players must be between 2 and 10"
-  }
-};
-
-function t(k){ return i18n[lang][k] || k; }
-
-function toggleLang(){
-  lang = lang === "fr" ? "en" : "fr";
-  localStorage.setItem("lang", lang);
-  document.getElementById("langBtn").innerText = lang === "fr" ? "🇫🇷" : "🇬🇧";
-  render();
-}
-
-window.onload = ()=>{
-  document.getElementById("langBtn").innerText = lang === "fr" ? "🇫🇷" : "🇬🇧";
-};
-</script>
-
-<!-- ================= FIREBASE + GAME ================= -->
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCOcYbmpg8ULnLZavZFLDlERp3tlKOcdGY",
@@ -147,70 +88,102 @@ let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={
 let maxPlayers=5;
 let roleCounts={Imposteur:1, Escroc:1, "Try-Harder":3};
 
+/* =============== I18N =============== */
+let lang = localStorage.getItem("lang") || "fr";
+const i18n = {
+  fr: {
+    home:"Accueil", rules:"Règles", about:"À propos", description:"Description",
+    localAccount:"Compte local", pseudo:"Ton pseudo", savePseudo:"Sauvegarder le pseudo",
+    createJoin:"Créer ou rejoindre un salon", players:"Nombre de joueurs (2 à 10)", roles:"Rôles",
+    createRoom:"Créer un salon", join:"Rejoindre", roomCode:"Code du salon",
+    waiting:"⏳ En attente joueurs / rôles", waitingOwner:"⏳ En attente du créateur de salon",
+    start:"Démarrer la partie", finishVote:"Finis de voter", results:"Résultat", finalResults:"Résultats finaux",
+    descriptionText:"Among Trolls est un mode de jeu multijoueur de rôle caché jouable gratuitement en ligne.",
+    rulesText:"Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.",
+    aboutText:"Mini-jeu multijoueur gratuit",
+    pseudoRequired:"Pseudo requis", roomNotFound:"Salon introuvable", roomFull:"Salon complet",
+    roleOptions: { "Imposteur":"Imposteur", "Escroc":"Escroc", "Try-Harder":"Try-Harder" }
+  },
+  en: {
+    home:"Home", rules:"Rules", about:"About", description:"Description",
+    localAccount:"Local account", pseudo:"Your nickname", savePseudo:"Save nickname",
+    createJoin:"Create or join a room", players:"Number of players (2 to 10)", roles:"Roles",
+    createRoom:"Create room", join:"Join", roomCode:"Room code",
+    waiting:"⏳ Waiting for players / roles", waitingOwner:"⏳ Waiting for host",
+    start:"Start game", finishVote:"Finish voting", results:"Results", finalResults:"Final results",
+    descriptionText:"Among Trolls is a free online multiplayer hidden-role game.",
+    rulesText:"Try-Harder: must win the game.<br>Impostor: must lose without being detected.<br>Swindler: pretends to be the impostor and wins.",
+    aboutText:"Free multiplayer mini-game",
+    pseudoRequired:"Nickname required", roomNotFound:"Room not found", roomFull:"Room is full",
+    roleOptions: { "Imposteur":"Impostor", "Escroc":"Swindler", "Try-Harder":"Try-Harder" }
+  }
+};
+
+function t(k){ return i18n[lang][k] || k; }
+
+function toggleLang(){
+  lang = lang==="fr"?"en":"fr";
+  localStorage.setItem("lang", lang);
+  document.getElementById("langBtn").innerText = lang==="fr"?"🇫🇷":"🇬🇧";
+  render();
+}
+
+/* =============== UTILS =============== */
 function saveAccount(pseudo){ localStorage.setItem("account", JSON.stringify({pseudo})); }
 function loadAccount(){ const data=localStorage.getItem("account"); return data ? JSON.parse(data) : null; }
-
 function generateCode(){ return Math.random().toString(36).substring(2,7).toUpperCase(); }
-function assignRoles(list){ 
-  let allRoles=[]; 
-  for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r); 
-  allRoles.sort(()=>Math.random()-0.5); 
-  let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]); 
-  return obj; 
+function assignRoles(list){
+  let allRoles=[];
+  for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r);
+  allRoles.sort(()=>Math.random()-0.5);
+  let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]);
+  return obj;
 }
 function adjustTryHarder(){ roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Imposteur+roleCounts.Escroc); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0; }
 
-function savePseudoFromInput(){ 
-  const pseudo=document.getElementById("pseudo").value.trim(); 
-  if(!pseudo) return alert(t("pseudoRequired")); 
-  saveAccount(pseudo); 
-  name=pseudo; 
-  render(); 
+/* =============== GAME FUNCTIONS =============== */
+function savePseudoFromInput(){
+  const pseudo=document.getElementById("pseudo").value.trim();
+  if(!pseudo) return alert(t("pseudoRequired"));
+  saveAccount(pseudo);
+  name=pseudo;
+  render();
 }
 
 function createRoom(){
-  name=document.getElementById("pseudo").value.trim(); 
+  name=document.getElementById("pseudo").value.trim();
   if(!name) return alert(t("pseudoRequired"));
   maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder();
-  if(maxPlayers<2||maxPlayers>10) return alert(t("playersLimit"));
-  if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert(t("playersLimit"));
+  if(maxPlayers<2||maxPlayers>10) return alert(t("players"));
+  if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
   roomCode=generateCode(); players=[name]; owner=name;
   db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[]});
   listenRoom(); screen="lobby"; render();
 }
 
 function joinRoom(){
-  name=document.getElementById("pseudo").value.trim(); 
+  name=document.getElementById("pseudo").value.trim();
   roomCode=document.getElementById("code").value.trim().toUpperCase();
   if(!name) return alert(t("pseudoRequired"));
   db.ref("rooms/"+roomCode).get().then(snap=>{
     if(!snap.exists()) return alert(t("roomNotFound"));
-    const data=snap.val(); 
-    players=data.players||[]; owner=data.owner||""; 
-    maxPlayers=data.maxPlayers||maxPlayers; 
+    const data=snap.val();
+    players=data.players||[]; owner=data.owner||"";
+    maxPlayers=data.maxPlayers||maxPlayers;
     roleCounts=data.roleCounts||roleCounts;
     votes=data.votes||{};
     votedPlayers=data.votedPlayers||[];
     if(players.length>=maxPlayers) return alert(t("roomFull"));
-    if(!players.includes(name)) players.push(name); 
+    if(!players.includes(name)) players.push(name);
     db.ref("rooms/"+roomCode+"/players").set(players);
     listenRoom(); screen="lobby"; render();
   });
 }
 
-function startGame(){ 
-  if(name!==owner) return; 
-  roles=assignRoles(players); 
-  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); 
-}
-function restartGame(){ 
-  if(name!==owner) return; 
-  roles=assignRoles(players); 
-  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); 
-  screen="role"; render();
-}
+function startGame(){ if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); }
+function restartGame(){ if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); screen="role"; render(); }
 
-// ------------------- VOTE EN LIVE -------------------
+/* =============== LIVE VOTE =============== */
 function submitVoteLive(){
   const voteObj = {};
   players.forEach(p => { if(p!==name){ voteObj[p] = document.getElementById("vote_"+p).value || t("waiting"); } });
@@ -218,34 +191,31 @@ function submitVoteLive(){
   db.ref(`rooms/${roomCode}/votedPlayers`).transaction(vp => { if(!vp) vp=[]; if(!vp.includes(name)) vp.push(name); return vp; });
 }
 
+/* =============== RENDER ROLE SCREEN =============== */
 function renderRoleScreen(){
   const app = document.getElementById("app");
-  app.innerHTML = `<p class="role-popup">${t("localAccount")} : <b>${roles[name]}</b></p><h3>${t("finishVote")}</h3>`;
-  players.forEach(p => {
+  app.innerHTML = `<p class="role-popup">${t("home")} : <b>${roles[name]}</b></p><h3>${t("finishVote")}</h3>`;
+  players.forEach(p=>{
     if(p!==name){
       const currentVote = votes[name] && votes[name][p] ? votes[name][p] : "";
-      app.innerHTML += `
-        <label>${p} :
-          <select id="vote_${p}">
-            <option value="">--${t("finishVote")}--</option>
-            <option value="Imposteur" ${currentVote==="Imposteur"?"selected":""}>Imposteur</option>
-            <option value="Escroc" ${currentVote==="Escroc"?"selected":""}>Escroc</option>
-            <option value="Try-Harder" ${currentVote==="Try-Harder"?"selected":""}>Try-Harder</option>
-          </select>
-        </label>
-      `;
+      app.innerHTML+=`<label>${p} :
+        <select id="vote_${p}">
+          <option value="">--${t("roles")}--</option>
+          <option value="Imposteur" ${currentVote==="Imposteur"?"selected":""}>${i18n[lang].roleOptions["Imposteur"]}</option>
+          <option value="Escroc" ${currentVote==="Escroc"?"selected":""}>${i18n[lang].roleOptions["Escroc"]}</option>
+          <option value="Try-Harder" ${currentVote==="Try-Harder"?"selected":""}>${i18n[lang].roleOptions["Try-Harder"]}</option>
+        </select>
+      </label>`;
     }
   });
   const hasVoted = votedPlayers.includes(name);
   app.innerHTML += `<button ${hasVoted?"disabled class='disabled'":""} onclick="submitVoteLive()">${t("finishVote")}</button>`;
-  if(votedPlayers.length === players.length && name===owner){
-    app.innerHTML += `<button onclick="showResults()">${t("results")}</button>`;
-  }
+  if(votedPlayers.length===players.length && name===owner) app.innerHTML+=`<button onclick="showResults()">${t("results")}</button>`;
 }
-  
-// ------------------- RENDER ET LISTENER -------------------
+
+/* =============== RENDER & LISTENER =============== */
 function listenRoom(){
-  db.ref("rooms/"+roomCode).on("value", snap => {
+  db.ref("rooms/"+roomCode).on("value", snap=>{
     if(!snap.exists()) return;
     const data = snap.val();
     players = data.players || [];
@@ -256,90 +226,82 @@ function listenRoom(){
     votes = data.votes || {};
     votedPlayers = data.votedPlayers || [];
     screen = data.started ? "role" : "lobby";
-    if(screen === "role"){ renderRoleScreen(); } else { render(); }
+    if(screen==="role") renderRoleScreen(); else render();
   });
 }
 
 function showResults(){ screen="results"; render(); }
 
+/* =============== MAIN RENDER =============== */
 function render(){
   const app=document.getElementById("app");
-  const account = loadAccount();
-  const savedPseudo = account ? account.pseudo : "";
-  app.innerHTML=`
-    <div class="menu">
-      <button onclick="screen='home'; render()">Accueil</button>
-      <button onclick="screen='rules'; render()">Règles</button>
-      <button onclick="screen='about'; render()">À propos</button>
-      <button onclick="screen='description'; render()">Description</button>
-    </div><hr>
-  `;
+  const account=loadAccount(); const savedPseudo=account?account.pseudo:"";
+  app.innerHTML=`<div class="menu">
+    <button onclick="screen='home'; render()">${t("home")}</button>
+    <button onclick="screen='rules'; render()">${t("rules")}</button>
+    <button onclick="screen='about'; render()">${t("about")}</button>
+    <button onclick="screen='description'; render()">${t("description")}</button>
+  </div><hr>`;
 
   if(screen==="home"){
     adjustTryHarder();
     app.innerHTML+=`
-      <h3>Compte local</h3>
-      <input id="pseudo" placeholder="Ton pseudo" value="${savedPseudo}">
-      <button onclick="savePseudoFromInput()">Sauvegarder le pseudo</button>
+      <h3>${t("localAccount")}</h3>
+      <input id="pseudo" placeholder="${t("pseudo")}" value="${savedPseudo}">
+      <button onclick="savePseudoFromInput()">${t("savePseudo")}</button>
       <hr>
-      <h4>Créer ou rejoindre un salon</h4>
-      <label>Nombre de joueurs (2 à 10) :</label>
+      <h4>${t("createJoin")}</h4>
+      <label>${t("players")} :</label>
       <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
-      <h4>Rôles :</h4>
-      <label>Imposteur : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
-      <label>Escroc : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
-      <label>Try-Harder : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
-      <button onclick="createRoom()">Créer un salon</button>
-      <input id="code" placeholder="Code du salon">
-      <button onclick="joinRoom()">Rejoindre</button>
+      <h4>${t("roles")} :</h4>
+      <label>${i18n[lang].roleOptions["Imposteur"]} : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>${i18n[lang].roleOptions["Escroc"]} : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>${i18n[lang].roleOptions["Try-Harder"]} : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
+      <button onclick="createRoom()">${t("createRoom")}</button>
+      <input id="code" placeholder="${t("roomCode")}">
+      <button onclick="joinRoom()">${t("join")}</button>
     `;
   }
 
-  if(screen==="description"){ app.innerHTML+=`<h3>📝 Description</h3><p>Among Trolls est un mode de jeu multijoueur de rôle caché, jouable gratuitement en ligne associer à n'importe quel jeu d'équipe..</p>`; }
-  if(screen==="rules"){ app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner la partie.</p>`; }
-  if(screen==="about"){ app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`; }
+  if(screen==="description") app.innerHTML+=`<h3>📝 ${t("description")}</h3><p>${t("descriptionText")}</p>`;
+  if(screen==="rules") app.innerHTML+=`<h3>📜 ${t("rules")}</h3><p>${t("rulesText")}</p>`;
+  if(screen==="about") app.innerHTML+=`<h3>ℹ️ ${t("about")}</h3><p>${t("aboutText")}</p>`;
 
   if(screen==="lobby"){
-    app.innerHTML+=`<p>Code : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
+    app.innerHTML+=`<p>${t("roomCode")} : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
     if(name===owner){
       const totalRoles=roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"];
-      if(players.length===maxPlayers && totalRoles===maxPlayers){ app.innerHTML+=`<button onclick="startGame()">Démarrer la partie</button>`; }
-      else { app.innerHTML+=`<p>⏳ En attente joueurs / rôles</p>`; }
-    } else { app.innerHTML+=`<p>⏳ En attente du créateur de salon</p>`; }
+      if(players.length===maxPlayers && totalRoles===maxPlayers) app.innerHTML+=`<button onclick="startGame()">${t("start")}</button>`;
+      else app.innerHTML+=`<p>${t("waiting")}</p>`;
+    } else { app.innerHTML+=`<p>${t("waitingOwner")}</p>`; }
   }
 
   if(screen==="results"){
-    app.innerHTML+="<h3>Résultats finaux</h3>";
-    app.innerHTML+=`
-      <table style="width:100%;border-collapse: collapse;font-family: Arial, sans-serif;text-align:center;margin-top:10px;">
-        <thead>
-          <tr style="background:#4f46e5;color:white;">
-            <th style="border:1px solid #000;padding:8px;">Joueur</th>
-            ${players.map(p=>`<th style="border:1px solid #000;padding:8px;">${p}<br>(${roles[p]})</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${players.map((p,i)=>`<tr style="background:${i%2===0?'#f9f9f9':'#ffffff'};">
-            <td style="border:1px solid #000;padding:8px;">${p}</td>
-            ${players.map(target => {
-              if(p===target){ return `<td style="border:1px solid #000;padding:8px;">--</td>`; }
-              else { const voteValue = votes[p] && votes[p][target] ? votes[p][target] : ""; return `<td style="border:1px solid #000;padding:8px;">${voteValue}</td>`; }
-            }).join('')}
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    `;
-    if(name===owner){ app.innerHTML+=`<button style="margin-top:10px;" onclick="restartGame()">Nouvelle partie</button>`; }
+    app.innerHTML+=`<h3>${t("finalResults")}</h3>
+    <table style="width:100%;border-collapse: collapse;font-family: Arial, sans-serif;text-align:center;margin-top:10px;">
+      <thead><tr style="background:#4f46e5;color:white;">
+        <th style="border:1px solid #000;padding:8px;">${t("pseudo")}</th>
+        ${players.map(p=>`<th style="border:1px solid #000;padding:8px;">${p}<br>(${roles[p]})</th>`).join('')}
+      </tr></thead>
+      <tbody>
+      ${players.map((p,i)=>`<tr style="background:${i%2===0?'#f9f9f9':'#ffffff'};">
+        <td style="border:1px solid #000;padding:8px;">${p}</td>
+        ${players.map(target=>{
+          if(p===target) return `<td style="border:1px solid #000;padding:8px;">--</td>`;
+          const voteValue=votes[p]&&votes[p][target]?votes[p][target]:"";
+          return `<td style="border:1px solid #000;padding:8px;">${voteValue}</td>`;
+        }).join('')}
+      </tr>`).join('')}
+      </tbody>
+    </table>`;
+    if(name===owner) app.innerHTML+=`<button style="margin-top:10px;" onclick="restartGame()">${t("start")}</button>`;
   }
 }
 
-// Auto-load pseudo
-const account = loadAccount();
-if(account) name = account.pseudo;
+/* =============== AUTO LOAD PSEUDO =============== */
+const account = loadAccount(); if(account) name=account.pseudo;
+document.getElementById("langBtn").innerText = lang==="fr"?"🇫🇷":"🇬🇧";
 render();
 </script>
 </body>
 </html>
-
-
-
