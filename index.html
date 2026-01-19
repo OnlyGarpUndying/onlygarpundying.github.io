@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title data-i18n="title">Among Trolls 🃏</title>
+  <title>Among Trolls 🃏</title>
 
   <meta name="description" content="Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne à partir de n'importe quel autre jeu.">
   <meta name="robots" content="index, follow">
@@ -22,7 +22,7 @@
       display: flex; justify-content: center; align-items: center; 
       height: 100vh; margin: 0; transition: background 1s; 
     }
-    .page { width: 100%; display: flex; justify-content: center; position: relative; }
+    .page { width: 100%; display: flex; justify-content: center; }
     .box { 
       background: white; padding: 60px; border-radius: 20px; width: 600px; 
       z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,0.2); 
@@ -48,7 +48,7 @@
     .menu { 
       display: flex; 
       justify-content: space-between; 
-      gap: 8px; 
+      gap: 8px; /* Ajout de l'espacement entre boutons */
       margin-bottom: 10px;
       background: rgba(255,255,255,0.9); 
       padding: 6px; 
@@ -65,34 +65,17 @@
     .role-popup { animation: pop 0.5s ease-out; }
     @keyframes pop { 0% { transform: scale(0); opacity:0; } 100% { transform: scale(1); opacity:1; } }
     .disabled { background-color: #a1a1aa !important; cursor: not-allowed !important; }
-
-    /* Bouton drapeau */
-    #lang-switch {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      cursor: pointer;
-      z-index: 10;
-    }
-    #lang-switch img {
-      width: 32px;
-      height: 32px;
-    }
   </style>
 </head>
 
 <body>
 <div class="page">
-  <div id="lang-switch">
-    <img src="fr-flag.png" alt="FR" id="current-flag">
-  </div>
-
   <div class="side-ad left-ad">
     <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="1111111111" data-ad-format="vertical"></ins>
   </div>
 
   <div class="box">
-    <h2 data-i18n="title">Among Trolls 🃏</h2>
+    <h2>Among Trolls 🃏</h2>
     <div id="app"></div>
   </div>
 
@@ -107,101 +90,49 @@
 </script>
 
 <script>
-// ------------------- Traductions -------------------
-const translations = {
-  fr: {
-    title: "Among Trolls 🃏",
-    localAccount: "Compte local",
-    pseudoPlaceholder: "Ton pseudo",
-    savePseudo: "Sauvegarder le pseudo",
-    createJoinRoom: "Créer ou rejoindre un salon",
-    numberPlayers: "Nombre de joueurs (2 à 10) :",
-    roles: "Rôles :",
-    impostor: "Imposteur",
-    scammer: "Escroc",
-    tryHarder: "Try-Harder",
-    createRoom: "Créer un salon",
-    joinRoom: "Rejoindre",
-    descriptionTitle: "📝 Description",
-    descriptionText: "Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne à partir de n'importe quel autre jeu.",
-    home: "Accueil",
-    rules: "Règles",
-    about: "À propos",
-    results: "Résultats finaux",
-    newGame: "Nouvelle partie",
-    voteFinished: "Finis de voter",
-    waitingCreator: "⏳ En attente du créateur de salon",
-    waitingPlayersRoles: "⏳ En attente joueurs / rôles",
-    rulesText: "Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.",
-    aboutText: "Mini-jeu multijoueur gratuit",
-    voteLabel: "Votez pour chaque joueur",
-    choose: "--Choisir--",
-    notVoted: "Non voté"
-  },
-  en: {
-    title: "Among Trolls 🃏",
-    localAccount: "Local Account",
-    pseudoPlaceholder: "Your nickname",
-    savePseudo: "Save nickname",
-    createJoinRoom: "Create or join a room",
-    numberPlayers: "Number of players (2-10):",
-    roles: "Roles:",
-    impostor: "Impostor",
-    scammer: "Scammer",
-    tryHarder: "Try-Harder",
-    createRoom: "Create Room",
-    joinRoom: "Join Room",
-    descriptionTitle: "📝 Description",
-    descriptionText: "Among Trolls is a free online multiplayer hidden role game playable from any device.",
-    home: "Home",
-    rules: "Rules",
-    about: "About",
-    results: "Final Results",
-    newGame: "New Game",
-    voteFinished: "Finish Voting",
-    waitingCreator: "⏳ Waiting for room creator",
-    waitingPlayersRoles: "⏳ Waiting for players / roles",
-    rulesText: "Try-Harder: must win the game.<br>Impostor: must lose without being discovered.<br>Scammer: must pretend to be the impostor and win.",
-    aboutText: "Free multiplayer mini-game",
-    voteLabel: "Vote for each player",
-    choose: "--Choose--",
-    notVoted: "Not voted"
-  }
+const firebaseConfig = {
+  apiKey: "AIzaSyCOcYbmpg8ULnLZavZFLDlERp3tlKOcdGY",
+  authDomain: "amongtroll-4a3c5.firebaseapp.com",
+  databaseURL: "https://amongtroll-4a3c5-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "amongtroll-4a3c5",
+  storageBucket: "amongtroll-4a3c5.appspot.com",
+  messagingSenderId: "245950843484",
+  appId: "1:245950843484:web:b4f808a0fcbf19d3e67499"
 };
 
-let currentLang = "fr";
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// ------------------- Fonction de traduction -------------------
-function updateTexts() {
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if(translations[currentLang][key]) el.textContent = translations[currentLang][key];
-  });
-  // Mettre à jour placeholder séparément
-  const pseudoInput = document.getElementById("pseudo");
-  if(pseudoInput) pseudoInput.placeholder = translations[currentLang].pseudoPlaceholder;
+let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={}, votedPlayers=[];
+
+// ------------------- Compte local -------------------
+function saveAccount(pseudo) {
+  localStorage.setItem("account", JSON.stringify({ pseudo }));
+}
+function loadAccount() {
+  const data = localStorage.getItem("account");
+  if(!data) return null;
+  return JSON.parse(data);
 }
 
-// ------------------- Changement de langue -------------------
-document.getElementById("lang-switch").addEventListener("click", () => {
-  currentLang = currentLang === "fr" ? "en" : "fr";
-  const flag = document.getElementById("current-flag");
-  flag.src = currentLang === "fr" ? "fr-flag.png" : "en-flag.png";
-  flag.alt = currentLang.toUpperCase();
-  render(); //
-});
+// ------------------- Roles et salon -------------------
+let maxPlayers=5;
+let roleCounts={Imposteur:1, Escroc:1, "Try-Harder":3};
 
-function render(){
-  const app=document.getElementById("app");
-  const account = loadAccount();
-  const savedPseudo = account ? account.pseudo : "";
+function generateCode(){return Math.random().toString(36).substring(2,7).toUpperCase();}
+function assignRoles(list){
+  let allRoles=[];
+  for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r);
+  allRoles.sort(()=>Math.random()-0.5);
+  let obj={};
+  list.forEach((p,i)=>obj[p]=allRoles[i]);
+  return obj;
+}
+function adjustTryHarder(){
+  roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Imposteur+roleCounts.Escroc);
+  if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;
+}
 
-  app.innerHTML=`<div class="menu">
-      <button onclick="screen='home'; render()" data-i18n="home">Accueil</button>
-      <button onclick="screen='rules'; render()" data-i18n="rules">Règles</button>
-      <button onclick="screen='about'; render()" data-i18n="about">À propos</button>
-      <button onclick="screen='description'; render()" data-i18n="descriptionTitle">Description</button>
-    </div><hr>`;
 // ------------------- RENDER -------------------
 function render(){
   const app=document.getElementById("app");
@@ -425,4 +356,3 @@ render();
 
 </body>
 </html>
-
