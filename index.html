@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Among Trolls 🃏</title>
-<meta name="description" content="Among Trolls est un mode de jeu multijoueur de rôle caché, jouable gratuitement en ligne associer à n'importe quel jeu d'équipe.">
 <meta name="robots" content="index, follow">
 <meta name="author" content="Among Trolls">
 
@@ -220,8 +219,8 @@ function render(){
     `;
   }
 
-  if(screen==="description"){ app.innerHTML+=`<h3>📝 Description</h3><p>Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne.</p>`; }
-  if(screen==="rules"){ app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`; }
+  if(screen==="description"){ app.innerHTML+=`<h3>📝 Description</h3><p>Among Trolls est un mode de jeu multijoueur de rôle caché, jouable gratuitement en ligne associer à n'importe quel jeu d'équipe.</p>`; }
+  if(screen==="rules"){ app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie. / Try-Harder: must win the game.<br>Imposteur : doit perdre la partie sans se faire repérer. / Impostor: must lose the game without being detected.<br>Escroc : doit se faire passer pour l'imposteur et gagner la partie. / Cheater: must pretend to be the impostor and win the game.</p>`; }
   if(screen==="about"){ app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`; }
 
   if(screen==="lobby"){
@@ -265,4 +264,3 @@ render();
 </script>
 </body>
 </html>
-
