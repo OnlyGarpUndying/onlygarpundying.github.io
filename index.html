@@ -119,6 +119,8 @@ const translations = {
       pseudoRequired:"Nickname required", roomNotFound:"Room not found", roomFull:"Room full"}
 };
 
+const translationsRoles = {impostor:{fr:"Imposteur",en:"Impostor"},scammer:{fr:"Escroc",en:"Scammer"},"try-harder":{fr:"Try-Harder",en:"Try-Harder"}};
+
 function setLanguage(lang){language=lang; render();}
 function saveAccount(p){localStorage.setItem("account",JSON.stringify({pseudo:p}));}
 function loadAccount(){const d=localStorage.getItem("account");if(!d)return null;return JSON.parse(d);}
@@ -164,7 +166,6 @@ function render(){
   if(screen==="rules"){app.innerHTML+=`<h3>📜 ${t.rules}</h3><p>${t.rulesText.replace(/\n/g,"<br>")}</p>`;}
   if(screen==="about"){app.innerHTML+=`<h3>ℹ️ ${t.about}</h3><p>${t.aboutText}</p>`;}
 
-  // LOBBY
   if(screen==="lobby"){
     app.innerHTML+=`<p>Code : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
     if(name===owner){
@@ -179,7 +180,6 @@ function render(){
     }
   }
 
-  // ROLE
   if(screen==="role"){
     app.innerHTML+=`<p class="role-popup">Role: <b>${translationsRoles[roles[name].toLowerCase()][language]}</b></p>`;
     app.innerHTML+="<h3>Vote for each player</h3>";
@@ -198,13 +198,9 @@ function render(){
         `;
       }
     });
-    app.innerHTML+=`<button ${votedPlayers.includes(name)?"disabled class='disabled'":""} onclick="submitVote()">${t.finishVote}</button>`;
-    if(votedPlayers.length===players.length && name===owner){
-      app.innerHTML+=`<button onclick="showResults()">${t.results}</button>`;
-    }
+    app.innerHTML+=`<button onclick="submitVote()">${t.finishVote}</button>`;
   }
 
-  // RESULTS
   if(screen==="results"){
     app.innerHTML+=`<h3>${t.finalResults}</h3>`;
     app.innerHTML+=`
@@ -238,52 +234,12 @@ function render(){
 }
 
 // ------------------- ACCOUNT -------------------
-function savePseudoFromInput(){
-  const pseudo=document.getElementById("pseudo").value.trim();
-  if(!pseudo) return alert(translations[language].pseudoRequired);
-  saveAccount(pseudo); name=pseudo; render();
-}
+function savePseudoFromInput(){const pseudo=document.getElementById("pseudo").value.trim(); if(!pseudo) return alert(translations[language].pseudoRequired); saveAccount(pseudo); name=pseudo; render();}
 
 // ------------------- ROOM -------------------
-function createRoom(){
-  name=document.getElementById("pseudo").value.trim();
-  if(!name) return alert(translations[language].pseudoRequired);
-  maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder();
-  if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10");
-  if(roleCounts.Impostor+roleCounts.Scammer+roleCounts["Try-Harder"]!==maxPlayers) return alert("Total roles must match players");
-  roomCode=generateCode(); players=[name]; owner=name;
-  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[],screen:"lobby"});
-  listenRoom(); screen="lobby"; render();
-}
-
-function joinRoom(){
-  name=document.getElementById("pseudo").value.trim();
-  roomCode=document.getElementById("code").value.trim().toUpperCase();
-  if(!name) return alert(translations[language].pseudoRequired);
-  db.ref("rooms/"+roomCode).get().then(snap=>{
-    if(!snap.exists()) return alert(translations[language].roomNotFound);
-    const data=snap.val();
-    players=data.players||[]; owner=data.owner||"";
-    maxPlayers=data.maxPlayers||maxPlayers; roleCounts=data.roleCounts||roleCounts;
-    votes=data.votes||{}; votedPlayers=data.votedPlayers||[];
-    if(players.length>=maxPlayers) return alert(translations[language].roomFull);
-    if(!players.includes(name)) players.push(name);
-    db.ref("rooms/"+roomCode+"/players").set(players);
-    listenRoom(); screen="lobby"; render();
-  });
-}
-
-function listenRoom(){
-  db.ref("rooms/"+roomCode).on("value",snap=>{
-    if(!snap.exists()) return;
-    const data=snap.val();
-    players=data.players||[]; roles=data.roles||{}; owner=data.owner||"";
-    maxPlayers=data.maxPlayers||maxPlayers; roleCounts=data.roleCounts||roleCounts;
-    votes=data.votes||{}; votedPlayers=data.votedPlayers||[];
-    screen=data.screen || (data.started?"role":"lobby");
-    render();
-  });
-}
+function createRoom(){name=document.getElementById("pseudo").value.trim(); if(!name) return alert(translations[language].pseudoRequired); maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder(); if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10"); if(roleCounts.Impostor+roleCounts.Scammer+roleCounts["Try-Harder"]!==maxPlayers) return alert("Total roles must match players"); roomCode=generateCode(); players=[name]; owner=name; db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[],screen:"lobby"}); listenRoom(); screen="lobby"; render();}
+function joinRoom(){name=document.getElementById("pseudo").value.trim(); roomCode=document.getElementById("code").value.trim().toUpperCase(); if(!name) return alert(translations[language].pseudoRequired); db.ref("rooms/"+roomCode).get().then(snap=>{if(!snap.exists()) return alert(translations[language].roomNotFound); const data=snap.val(); players=data.players||[]; owner=data.owner||""; maxPlayers=data.maxPlayers||maxPlayers; roleCounts=data.roleCounts||roleCounts; votes=data.votes||{}; votedPlayers=data.votedPlayers||[]; if(players.length>=maxPlayers) return alert(translations[language].roomFull); if(!players.includes(name)) players.push(name); db.ref("rooms/"+roomCode+"/players").set(players); listenRoom(); screen="lobby"; render();});}
+function listenRoom(){db.ref("rooms/"+roomCode).on("value",snap=>{if(!snap.exists()) return; const data=snap.val(); players=data.players||[]; roles=data.roles||{}; owner=data.owner||""; maxPlayers=data.maxPlayers||maxPlayers; roleCounts=data.roleCounts||roleCounts; votes=data.votes||{}; votedPlayers=data.votedPlayers||[]; screen=data.screen || (data.started?"role":"lobby"); render();});}
 
 // ------------------- GAME -------------------
 function startGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[],screen:"role"});}
@@ -295,10 +251,11 @@ function submitVote(){
   players.forEach(p=>{if(p!==name){const val=document.getElementById("vote_"+p).value; v[p]=val || "Non voté";}});
   db.ref("rooms/"+roomCode+"/votes/"+name).set(v);
   db.ref("rooms/"+roomCode+"/votedPlayers").once("value").then(snap=>{let vp = snap.val() || []; if(!vp.includes(name)) vp.push(name); db.ref("rooms/"+roomCode+"/votedPlayers").set(vp);});
+  db.ref("rooms/"+roomCode+"/screen").set(votedPlayers.length+1>=players.length?"results":"role");
   render();
 }
 
-// ------------------- RESULTS SYNC -------------------
+// ------------------- RESULTS -------------------
 function showResults(){db.ref("rooms/"+roomCode+"/screen").set("results");}
 
 // Auto-load pseudo
