@@ -39,7 +39,7 @@ hr { margin: 10px 0; }
   top: 12px;
   right: 12px;
   z-index: 999;
-  padding: 4px 8px;
+  padding: 4px 6px;
   border-radius: 12px;
   border: none;
   cursor: pointer;
@@ -69,7 +69,9 @@ hr { margin: 10px 0; }
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyCOcYbmpg8ULnLZavZFLDlERp3tlKOcdGY",
   authDomain: "amongtroll-4a3c5.firebaseapp.com",
@@ -86,7 +88,6 @@ let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={
 let maxPlayers=5;
 let roleCounts={Imposteur:1, Escroc:1, "Try-Harder":3};
 
-/* =============== I18N =============== */
 let lang = localStorage.getItem("lang") || "fr";
 const i18n = {
   fr: {
@@ -118,8 +119,6 @@ const i18n = {
 };
 
 function t(k){ return i18n[lang][k] || k; }
-function roleName(r){ return i18n[lang].roleOptions[r] || r; }
-
 function toggleLang(){
   lang = lang==="fr"?"en":"fr";
   localStorage.setItem("lang", lang);
@@ -127,18 +126,17 @@ function toggleLang(){
   render();
 }
 
-/* =============== UTILS =============== */
 function saveAccount(pseudo){ localStorage.setItem("account", JSON.stringify({pseudo})); }
 function loadAccount(){ const data=localStorage.getItem("account"); return data ? JSON.parse(data) : null; }
 function generateCode(){ return Math.random().toString(36).substring(2,7).toUpperCase(); }
 function assignRoles(list){
-  let allRoles=[]; for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r);
+  let allRoles=[];
+  for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r);
   allRoles.sort(()=>Math.random()-0.5);
-  let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]); return obj;
+  let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]);
+  return obj;
 }
 function adjustTryHarder(){ roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Imposteur+roleCounts.Escroc); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0; }
-
-/* =============== GAME FUNCTIONS =============== */
 function savePseudoFromInput(){
   const pseudo=document.getElementById("pseudo").value.trim();
   if(!pseudo) return alert(t("pseudoRequired"));
@@ -154,7 +152,7 @@ function createRoom(){
   if(maxPlayers<2||maxPlayers>10) return alert(t("players"));
   if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
   roomCode=generateCode(); players=[name]; owner=name;
-  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[], resultsShown:false});
+  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[]});
   listenRoom(); screen="lobby"; render();
 }
 
@@ -176,49 +174,30 @@ function joinRoom(){
     listenRoom(); screen="lobby"; render();
   });
 }
-  
-<script>
-function startGame(){ 
-  if(name!==owner) return; 
-  roles=assignRoles(players); 
-  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); 
-}
-
-function restartGame(){ 
-  if(name!==owner) return; 
-  roles=assignRoles(players); 
-  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); 
-  screen="role"; 
-  render(); 
-}
+function startGame(){ if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); }
+function restartGame(){ if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); screen="role"; render(); }
 
 function submitVoteLive(){
   const voteObj = {};
-  players.forEach(p => { 
-    if(p!==name){ 
-      voteObj[p] = document.getElementById("vote_"+p).value || t("waiting"); 
-    } 
-  });
+  players.forEach(p => { if(p!==name){ voteObj[p] = document.getElementById("vote_"+p).value || ""; } });
   db.ref(`rooms/${roomCode}/votes/${name}`).set(voteObj);
-  db.ref(`rooms/${roomCode}/votedPlayers`).transaction(vp => { 
-    if(!vp) vp=[]; 
-    if(!vp.includes(name)) vp.push(name); 
-    return vp; 
-  });
+  db.ref(`rooms/${roomCode}/votedPlayers`).transaction(vp => { if(!vp) vp=[]; if(!vp.includes(name)) vp.push(name); return vp; });
 }
+
+function roleName(key){ return i18n[lang].roleOptions[key] || key; }
 
 function renderRoleScreen(){
   const app = document.getElementById("app");
-  app.innerHTML = `<p class="role-popup">${t("home")} : <b>${roles[name]}</b></p><h3>${t("finishVote")}</h3>`;
+  app.innerHTML = `<p class="role-popup">${t("home")} : <b>${roleName(roles[name])}</b></p><h3>${t("finishVote")}</h3>`;
   players.forEach(p=>{
     if(p!==name){
       const currentVote = votes[name] && votes[name][p] ? votes[name][p] : "";
       app.innerHTML+=`<label>${p} :
         <select id="vote_${p}">
           <option value="">--${t("roles")}--</option>
-          <option value="Imposteur" ${currentVote==="Imposteur"?"selected":""}>${i18n[lang].roleOptions["Imposteur"]}</option>
-          <option value="Escroc" ${currentVote==="Escroc"?"selected":""}>${i18n[lang].roleOptions["Escroc"]}</option>
-          <option value="Try-Harder" ${currentVote==="Try-Harder"?"selected":""}>${i18n[lang].roleOptions["Try-Harder"]}</option>
+          <option value="Imposteur" ${currentVote==="Imposteur"?"selected":""}>${roleName("Imposteur")}</option>
+          <option value="Escroc" ${currentVote==="Escroc"?"selected":""}>${roleName("Escroc")}</option>
+          <option value="Try-Harder" ${currentVote==="Try-Harder"?"selected":""}>${roleName("Try-Harder")}</option>
         </select>
       </label>`;
     }
@@ -226,11 +205,6 @@ function renderRoleScreen(){
   const hasVoted = votedPlayers.includes(name);
   app.innerHTML += `<button ${hasVoted?"disabled class='disabled'":""} onclick="submitVoteLive()">${t("finishVote")}</button>`;
   if(votedPlayers.length===players.length && name===owner) app.innerHTML+=`<button onclick="showResults()">${t("results")}</button>`;
-}
-
-function showResults(){
-  screen="results";
-  render();
 }
 
 function listenRoom(){
@@ -244,24 +218,25 @@ function listenRoom(){
     roleCounts = data.roleCounts || roleCounts;
     votes = data.votes || {};
     votedPlayers = data.votedPlayers || [];
-    
     screen = data.started ? "role" : "lobby";
     if(screen==="role") renderRoleScreen(); else render();
   });
 }
 
+function showResults(){ screen="results"; render(); }
+
 function render(){
   const app=document.getElementById("app");
-  const account=loadAccount(); 
-  const savedPseudo=account?account.pseudo:"";
-
-  let showFullMenu = (screen!=="role");
-  app.innerHTML=`<div class="menu">
-    <button onclick="screen='home'; render()">${t("home")}</button>
-    ${showFullMenu?`<button onclick="screen='rules'; render()">${t("rules")}</button>`:""}
-    ${showFullMenu?`<button onclick="screen='about'; render()">${t("about")}</button>`:""}
-    ${showFullMenu?`<button onclick="screen='description'; render()">${t("description")}</button>`:""}
-  </div><hr>`;
+  const account=loadAccount(); const savedPseudo=account?account.pseudo:"";
+  
+  let menuHTML = `<div class="menu"><button onclick="screen='home'; render()">${t("home")}</button>`;
+  if(screen!=="role" && screen!=="results") {
+    menuHTML += `<button onclick="screen='rules'; render()">${t("rules")}</button>
+    <button onclick="screen='about'; render()">${t("about")}</button>
+    <button onclick="screen='description'; render()">${t("description")}</button>`;
+  }
+  menuHTML += `</div><hr>`;
+  app.innerHTML = menuHTML;
 
   if(screen==="home"){
     adjustTryHarder();
@@ -274,9 +249,9 @@ function render(){
       <label>${t("players")} :</label>
       <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
       <h4>${t("roles")} :</h4>
-      <label>${i18n[lang].roleOptions["Imposteur"]} : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
-      <label>${i18n[lang].roleOptions["Escroc"]} : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
-      <label>${i18n[lang].roleOptions["Try-Harder"]} : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
+      <label>${roleName("Imposteur")} : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>${roleName("Escroc")} : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>${roleName("Try-Harder")} : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
       <button onclick="createRoom()">${t("createRoom")}</button>
       <input id="code" placeholder="${t("roomCode")}">
       <button onclick="joinRoom()">${t("join")}</button>
@@ -301,7 +276,7 @@ function render(){
     <table style="width:100%;border-collapse: collapse;font-family: Arial, sans-serif;text-align:center;margin-top:10px;">
       <thead><tr style="background:#4f46e5;color:white;">
         <th style="border:1px solid #000;padding:8px;">${t("pseudo")}</th>
-        ${players.map(p=>`<th style="border:1px solid #000;padding:8px;">${p}<br>(${roles[p]})</th>`).join('')}
+        ${players.map(p=>`<th style="border:1px solid #000;padding:8px;">${p}<br>(${roleName(roles[p])})</th>`).join('')}
       </tr></thead>
       <tbody>
       ${players.map((p,i)=>`<tr style="background:${i%2===0?'#f9f9f9':'#ffffff'};">
@@ -318,9 +293,9 @@ function render(){
   }
 }
 
-const account = loadAccount(); 
-if(account) name=account.pseudo;
+const account = loadAccount(); if(account) name=account.pseudo;
 document.getElementById("langBtn").innerText = lang==="fr"?"🇫🇷":"🇬🇧";
 render();
 </script>
-
+</body>
+</html>
