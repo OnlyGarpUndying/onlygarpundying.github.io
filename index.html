@@ -128,16 +128,17 @@ function generateCode(){return Math.random().toString(36).substring(2,7).toUpper
 function assignRoles(list){let a=[];for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) a.push(r);a.sort(()=>Math.random()-0.5); let o={}; list.forEach((p,i)=>o[p]=a[i]); return o;}
 function adjustTryHarder(){roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Impostor+roleCounts.Scammer); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;}
 
+// ------------------- RENDER -------------------
 function render(){
   const app=document.getElementById("app");
   const t=translations[language];
   const savedPseudo = loadAccount()?.pseudo || "";
   app.innerHTML=`
     <div class="menu">
-      <button onclick="screen='home'; render()">Home</button>
-      <button onclick="screen='rules'; render()">Rules</button>
-      <button onclick="screen='about'; render()">About</button>
-      <button onclick="screen='description'; render()">Description</button>
+      <button onclick="screen='home'; render()">${language==='fr'?'Accueil':'Home'}</button>
+      <button onclick="screen='rules'; render()">${language==='fr'?'Règles':'Rules'}</button>
+      <button onclick="screen='about'; render()">${language==='fr'?'À propos':'About'}</button>
+      <button onclick="screen='description'; render()">${language==='fr'?'Description':'Description'}</button>
     </div>
     <hr>
   `;
@@ -146,10 +147,10 @@ function render(){
     adjustTryHarder();
     app.innerHTML+=`
       <h3>${t.account}</h3>
-      <input id="pseudo" placeholder="Nickname" value="${savedPseudo}">
+      <input id="pseudo" placeholder="${language==='fr'?'Pseudo':'Nickname'}" value="${savedPseudo}">
       <button onclick="savePseudoFromInput()">${t.savePseudo}</button>
       <hr>
-      <h4>Create or join a room</h4>
+      <h4>${language==='fr'?'Créer ou rejoindre un salon':'Create or join a room'}</h4>
       <label>${t.numPlayers}</label>
       <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
       <h4>${t.roles}</h4>
@@ -157,7 +158,7 @@ function render(){
       <label>${t.scammer} : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Scammer}" onchange="roleCounts.Scammer=parseInt(this.value); adjustTryHarder(); render()"></label>
       <label>${t.tryHarder} : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
       <button onclick="createRoom()">${t.createRoom}</button>
-      <input id="code" placeholder="Room code">
+      <input id="code" placeholder="${language==='fr'?'Code du salon':'Room code'}">
       <button onclick="joinRoom()">${t.joinRoom}</button>
     `;
   }
@@ -166,8 +167,9 @@ function render(){
   if(screen==="rules"){app.innerHTML+=`<h3>📜 ${t.rules}</h3><p>${t.rulesText.replace(/\n/g,"<br>")}</p>`;}
   if(screen==="about"){app.innerHTML+=`<h3>ℹ️ ${t.about}</h3><p>${t.aboutText}</p>`;}
 
+  // ---------- LOBBY ----------
   if(screen==="lobby"){
-    app.innerHTML+=`<p>Code : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
+    app.innerHTML+=`<p>${language==='fr'?'Code':'Code'} : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
     if(name===owner){
       const totalRoles=roleCounts.Impostor+roleCounts.Scammer+roleCounts["Try-Harder"];
       if(players.length===maxPlayers && totalRoles===maxPlayers){
@@ -180,6 +182,7 @@ function render(){
     }
   }
 
+  // ---------- ROLE ----------
   if(screen==="role"){
     app.innerHTML+=`<p class="role-popup">Role: <b>${translationsRoles[roles[name].toLowerCase()][language]}</b></p>`;
     app.innerHTML+="<h3>Vote for each player</h3>";
@@ -201,6 +204,7 @@ function render(){
     app.innerHTML+=`<button onclick="submitVote()">${t.finishVote}</button>`;
   }
 
+  // ---------- RESULTS ----------
   if(screen==="results"){
     app.innerHTML+=`<h3>${t.finalResults}</h3>`;
     app.innerHTML+=`
