@@ -44,105 +44,256 @@
       border: none; cursor: pointer; background-color: #4f46e5; color: white; transition: 0.3s; 
     }
     button:hover { background-color: #6366f1; transform: scale(1.05); }
+
+    .menu { 
+      display: flex; 
+      justify-content: space-between; 
+      gap: 8px; /* Ajout de l'espacement entre boutons */
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.9); 
+      padding: 6px; 
+      border-radius: 12px; 
+    }
+    .menu button { width: 100%; font-size: 12px; }
+
+    hr { margin: 10px 0; }
+    .side-ad { width: 160px; position: fixed; top: 50%; transform: translateY(-50%); }
+    .left-ad { left: 10px; }
+    .right-ad { right: 10px; }
+    @media (max-width: 900px) { .side-ad { display: none; } }
+    .end-ad { margin-top: 15px; text-align: center; }
+    .role-popup { animation: pop 0.5s ease-out; }
+    @keyframes pop { 0% { transform: scale(0); opacity:0; } 100% { transform: scale(1); opacity:1; } }
     .disabled { background-color: #a1a1aa !important; cursor: not-allowed !important; }
   </style>
 </head>
 
 <body>
 <div class="page">
+  <div class="side-ad left-ad">
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="1111111111" data-ad-format="vertical"></ins>
+  </div>
+
   <div class="box">
     <h2>Among Trolls 🃏</h2>
     <div id="app"></div>
   </div>
+
+  <div class="side-ad right-ad">
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="2222222222" data-ad-format="vertical"></ins>
+  </div>
 </div>
+
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCOcYbmpg8ULnLZavZFLDlERp3tlKOcdGY",
-  databaseURL: "https://amongtroll-4a3c5-default-rtdb.europe-west1.firebasedatabase.app"
+  authDomain: "amongtroll-4a3c5.firebaseapp.com",
+  databaseURL: "https://amongtroll-4a3c5-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "amongtroll-4a3c5",
+  storageBucket: "amongtroll-4a3c5.appspot.com",
+  messagingSenderId: "245950843484",
+  appId: "1:245950843484:web:b4f808a0fcbf19d3e67499"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={}, votedPlayers=[];
-let showResults=false; // ⭐ AJOUT
+
+// ------------------- Compte local -------------------
+function saveAccount(pseudo) {
+  localStorage.setItem("account", JSON.stringify({ pseudo }));
+}
+function loadAccount() {
+  const data = localStorage.getItem("account");
+  if(!data) return null;
+  return JSON.parse(data);
+}
+
+// ------------------- Roles et salon -------------------
+let maxPlayers=5;
+let roleCounts={Imposteur:1, Escroc:1, "Try-Harder":3};
+
+function generateCode(){return Math.random().toString(36).substring(2,7).toUpperCase();}
+function assignRoles(list){
+  let allRoles=[];
+  for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r);
+  allRoles.sort(()=>Math.random()-0.5);
+  let obj={};
+  list.forEach((p,i)=>obj[p]=allRoles[i]);
+  return obj;
+}
+function adjustTryHarder(){
+  roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Imposteur+roleCounts.Escroc);
+  if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;
+}
 
 // ------------------- RENDER -------------------
 function render(){
   const app=document.getElementById("app");
-  app.innerHTML="";
+  const account = loadAccount();
+  const savedPseudo = account ? account.pseudo : "";
+
+  app.innerHTML=`
+    <div class="menu">
+      <button onclick="screen='home'; render()">Accueil</button>
+      <button onclick="screen='rules'; render()">Règles</button>
+      <button onclick="screen='about'; render()">À propos</button>
+      <button onclick="screen='description'; render()">Description</button>
+    </div>
+    <hr>
+  `;
 
   if(screen==="home"){
-    app.innerHTML=`
-      <input id="pseudo" placeholder="Pseudo">
-      <input id="code" placeholder="Code salon">
+    adjustTryHarder();
+    app.innerHTML+=`
+      <h3>Compte local</h3>
+      <input id="pseudo" placeholder="Ton pseudo" value="${savedPseudo}">
+      <button onclick="savePseudoFromInput()">Sauvegarder le pseudo</button>
+      <hr>
+      <h4>Créer ou rejoindre un salon</h4>
+      <label>Nombre de joueurs (2 à 10) :</label>
+      <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
+      <h4>Rôles :</h4>
+      <label>Imposteur : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Imposteur}" onchange="roleCounts.Imposteur=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>Escroc : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Escroc}" onchange="roleCounts.Escroc=parseInt(this.value); adjustTryHarder(); render()"></label>
+      <label>Try-Harder : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
       <button onclick="createRoom()">Créer un salon</button>
+      <input id="code" placeholder="Code du salon">
       <button onclick="joinRoom()">Rejoindre</button>
     `;
   }
 
-  if(screen==="lobby"){
-    app.innerHTML=`<p>Code : <b>${roomCode}</b></p>
-    <ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul>
-    ${name===owner?`<button onclick="startGame()">Démarrer</button>`:""}`;
-  }
-
-  if(screen==="role"){
-    app.innerHTML=`<p>Ton rôle : <b>${roles[name]}</b></p>`;
-    players.forEach(p=>{
-      if(p!==name){
-        app.innerHTML+=`
-          <label>${p}
-            <select id="vote_${p}">
-              <option value="">--</option>
-              <option>Imposteur</option>
-              <option>Escroc</option>
-              <option>Try-Harder</option>
-            </select>
-          </label>`;
-      }
-    });
+  if(screen==="description"){
     app.innerHTML+=`
-      <button onclick="submitVote()">Finis de voter</button>
-      ${name===owner && votedPlayers.length===players.length
-        ? `<button onclick="showResults()">Résultat</button>` : ""}
+      <h3>📝 Description</h3>
+      <p>
+        Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne
+        à partir de n'importe quel autre jeu.
+      </p>
     `;
   }
 
-  if(screen==="results"){
-    app.innerHTML="<h3>Résultats finaux</h3><table><tr><th>Joueur</th>";
-    players.forEach(p=>app.innerHTML+=`<th>${p}<br>(${roles[p]})</th>`);
-    app.innerHTML+="</tr>";
-    players.forEach(p=>{
-      app.innerHTML+=`<tr><td>${p}</td>`;
-      players.forEach(t=>{
-        app.innerHTML+=p===t?"<td>--</td>":`<td>${votes[p]?.[t]||""}</td>`;
-      });
-      app.innerHTML+="</tr>";
-    });
-    app.innerHTML+="</table>";
+  if(screen==="lobby"){
+    app.innerHTML+=`<p>Code : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
+    if(name===owner){
+      const totalRoles=roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"];
+      if(players.length===maxPlayers && totalRoles===maxPlayers){
+        app.innerHTML+=`<button onclick="startGame()">Démarrer la partie</button>`;
+      }else{
+        app.innerHTML+=`<p>⏳ En attente joueurs / rôles</p>`;
+      }
+    }else{
+      app.innerHTML+=`<p>⏳ En attente du créateur de salon</p>`;
+    }
   }
+
+  if(screen==="role"){
+    app.innerHTML+=`<p class="role-popup">Ton rôle : <b>${roles[name]}</b></p>`;
+    app.innerHTML+="<h3>Votez pour chaque joueur</h3>";
+    players.forEach(p=>{
+      if(p!==name){
+        const v=votes[name] && votes[name][p] ? votes[name][p] : "";
+        app.innerHTML+=`
+          <label>${p} :
+            <select id="vote_${p}">
+              <option value="">--Choisir--</option>
+              <option value="Imposteur" ${v==="Imposteur"?"selected":""}>Imposteur</option>
+              <option value="Escroc" ${v==="Escroc"?"selected":""}>Escroc</option>
+              <option value="Try-Harder" ${v==="Try-Harder"?"selected":""}>Try-Harder</option>
+            </select>
+          </label>
+        `;
+      }
+    });
+    app.innerHTML+=`<button ${votedPlayers.includes(name)?"disabled class='disabled'":""} onclick="submitVote()">Finis de voter</button>`;
+    if(votedPlayers.length===players.length && name===owner){
+      app.innerHTML+=`<button onclick="showResults()">Résultat</button>`;
+    }
+  }
+
+  if(screen==="results"){
+    app.innerHTML+="<h3>Résultats finaux</h3>";
+    app.innerHTML+=`
+      <table style="
+        width:100%;
+        border-collapse: collapse;
+        font-family: Arial, sans-serif;
+        text-align:center;
+        margin-top:10px;
+      ">
+        <thead>
+          <tr style="background:#4f46e5; color:white;">
+            <th style="border:1px solid #000; padding:8px;">Joueur</th>
+            ${players.map(p=>`<th style="border:1px solid #000; padding:8px;">${p}<br>(${roles[p]})</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${players.map((p,i)=>`
+            <tr style="background:${i%2===0?'#f9f9f9':'#ffffff'};">
+              <td style="border:1px solid #000; padding:8px;">${p}</td>
+              ${players.map(target=>{
+                if(p===target){
+                  return `<td style="border:1px solid #000; padding:8px;">--</td>`;
+                } else {
+                  const voteValue = votes[p] && votes[p][target] ? votes[p][target] : "";
+                  return `<td style="border:1px solid #000; padding:8px;">${voteValue}</td>`;
+                }
+              }).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    if(name===owner){
+      app.innerHTML+=`<button style="margin-top:10px;" onclick="restartGame()">Nouvelle partie</button>`;
+    }
+  }
+
+  if(screen==="rules"){app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`;}
+  if(screen==="about"){app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`;}
+}
+
+// ------------------- Compte -------------------
+function savePseudoFromInput(){
+  const pseudo=document.getElementById("pseudo").value.trim();
+  if(!pseudo) return alert("Pseudo requis");
+  saveAccount(pseudo);
+  name=pseudo;
+  render();
 }
 
 // ------------------- SALON -------------------
 function createRoom(){
-  name=document.getElementById("pseudo").value;
-  roomCode=Math.random().toString(36).substring(2,7).toUpperCase();
-  players=[name]; owner=name;
-  db.ref("rooms/"+roomCode).set({
-    players,owner,started:false,
-    votes:{},votedPlayers:[],
-    showResults:false // ⭐ AJOUT
-  });
+  name=document.getElementById("pseudo").value.trim(); 
+  if(!name) return alert("Pseudo requis");
+  maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder();
+  if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10");
+  if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
+  roomCode=generateCode(); players=[name]; owner=name;
+  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[]});
   listenRoom(); screen="lobby"; render();
 }
 
 function joinRoom(){
-  name=document.getElementById("pseudo").value;
-  roomCode=document.getElementById("code").value.toUpperCase();
-  db.ref("rooms/"+roomCode).get().then(s=>{
-    if(!s.exists()) return alert("Introuvable");
-    players=s.val().players; players.push(name);
+  name=document.getElementById("pseudo").value.trim(); 
+  roomCode=document.getElementById("code").value.trim().toUpperCase();
+  if(!name) return alert("Pseudo requis");
+  db.ref("rooms/"+roomCode).get().then(snap=>{
+    if(!snap.exists()) return alert("Salon introuvable");
+    const data=snap.val(); 
+    players=data.players||[]; owner=data.owner||""; 
+    maxPlayers=data.maxPlayers||maxPlayers; 
+    roleCounts=data.roleCounts||roleCounts;
+    votes=data.votes||{};
+    votedPlayers=data.votedPlayers||[];
+    if(players.length>=maxPlayers) return alert("Salon complet");
+    if(!players.includes(name)) players.push(name); 
     db.ref("rooms/"+roomCode+"/players").set(players);
     listenRoom(); screen="lobby"; render();
   });
@@ -150,56 +301,58 @@ function joinRoom(){
 
 function listenRoom(){
   db.ref("rooms/"+roomCode).on("value",snap=>{
-    if(!snap.exists()) return;
-    const d=snap.val();
-    players=d.players||[];
-    roles=d.roles||{};
-    votes=d.votes||{};
-    votedPlayers=d.votedPlayers||[];
-    showResults=d.showResults||false; // ⭐ AJOUT
-
-    if(showResults) screen="results";
-    else screen=d.started?"role":"lobby";
-
+    if(!snap.exists()) return; 
+    const data=snap.val();
+    players=data.players||[]; 
+    roles=data.roles||{}; 
+    owner=data.owner||""; 
+    maxPlayers=data.maxPlayers||maxPlayers; 
+    roleCounts=data.roleCounts||roleCounts;
+    votes=data.votes||{};
+    votedPlayers=data.votedPlayers||[];
+    screen=data.started?"role":"lobby"; 
     render();
   });
 }
 
 // ------------------- GAME -------------------
-function startGame(){
-  roles={};
-  players.forEach(p=>{
-    roles[p]=["Imposteur","Escroc","Try-Harder"][Math.floor(Math.random()*3)];
-  });
-  db.ref("rooms/"+roomCode).update({
-    started:true,
-    roles,
-    votes:{},
-    votedPlayers:[],
-    showResults:false // ⭐ AJOUT
-  });
-}
+function startGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]});}
+function restartGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({started:true,roles,votes:{},votedPlayers:[]}); screen="role"; render();}
 
 // ------------------- VOTE -------------------
 function submitVote(){
-  let v={};
+  const v={};
   players.forEach(p=>{
-    if(p!==name)v[p]=document.getElementById("vote_"+p).value||"";
+    if(p!==name){
+      const val=document.getElementById("vote_"+p).value;
+      v[p]=val || "Non voté";
+    }
   });
+
+  // Mise à jour du vote du joueur courant uniquement
   db.ref("rooms/"+roomCode+"/votes/"+name).set(v);
-  db.ref("rooms/"+roomCode+"/votedPlayers").once("value").then(s=>{
-    let vp=s.val()||[];
-    if(!vp.includes(name))vp.push(name);
+
+  // Mise à jour de la liste des joueurs ayant voté
+  db.ref("rooms/"+roomCode+"/votedPlayers").once("value").then(snap=>{
+    let vp = snap.val() || [];
+    if(!vp.includes(name)) vp.push(name);
     db.ref("rooms/"+roomCode+"/votedPlayers").set(vp);
   });
+
+  render();
 }
 
-// ⭐ PARTAGE DES RÉSULTATS
 function showResults(){
-  db.ref("rooms/"+roomCode).update({ showResults:true });
+  screen="results";
+  render();
 }
+
+// Auto-load pseudo si compte existe
+const account = loadAccount();
+if(account) name = account.pseudo;
 
 render();
 </script>
+
 </body>
 </html>
