@@ -90,7 +90,8 @@ let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={
 let maxPlayers=5;
 let roleCounts={Imposteur:1, Escroc:1, "Try-Harder":3};
 
-/* ================= LANG ================= */
+<script>
+/* ================= LANGUE ================= */
 let lang = localStorage.getItem("lang") || "fr";
 
 const i18n = {
@@ -100,7 +101,8 @@ const i18n = {
     createJoin:"Créer ou rejoindre un salon",
     players:"Nombre de joueurs (2 à 10)",
     roles:"Rôles",
-    createRoom:"Créer un salon", join:"Rejoindre",
+    createRoom:"Créer un salon",
+    join:"Rejoindre",
     roomCode:"Code du salon",
     waiting:"⏳ En attente joueurs / rôles",
     waitingOwner:"⏳ En attente du créateur de salon",
@@ -114,7 +116,7 @@ const i18n = {
     pseudoRequired:"Pseudo requis",
     roomNotFound:"Salon introuvable",
     roomFull:"Salon complet",
-    roleNames: { "Imposteur":"Imposteur", "Escroc":"Escroc", "Try-Harder":"Try-Harder" }
+    roleOptions: { "Imposteur":"Imposteur", "Escroc":"Escroc", "Try-Harder":"Try-Harder" }
   },
   en: {
     home:"Home", rules:"Rules", about:"About", description:"Description",
@@ -136,19 +138,37 @@ const i18n = {
     pseudoRequired:"Nickname required",
     roomNotFound:"Room not found",
     roomFull:"Room is full",
-    roleNames: { "Imposteur":"Impostor", "Escroc":"Swindler", "Try-Harder":"Try-Harder" }
+    roleOptions: { "Imposteur":"Impostor", "Escroc":"Swindler", "Try-Harder":"Try-Harder" }
   }
 };
 
+// Fonction pour traduire
 function t(key){ return i18n[lang][key] || key; }
 
-function toggleLang(){
-  lang = lang==="fr"?"en":"fr";
-  localStorage.setItem("lang",lang);
-  document.getElementById("langBtn").innerHTML = `<img src="https://flagcdn.com/${lang}.svg" alt="${lang.toUpperCase()}">`;
-  render();
+// ================= BOUTON LANGUE AVEC DRAPEAU =================
+const langBtn = document.createElement("button");
+langBtn.id = "langBtn";
+langBtn.style = "position:fixed;top:12px;right:12px;z-index:999;padding:8px 14px;border-radius:12px;border:none;font-weight:bold;cursor:pointer;background:#111827;color:white;font-size:18px;";
+langBtn.onclick = toggleLang;
+document.body.appendChild(langBtn);
+
+function updateLangButton() {
+  if(lang==="fr"){ 
+    langBtn.innerHTML = "🇫🇷"; 
+  } else { 
+    langBtn.innerHTML = "🇬🇧"; 
+  }
 }
 
+// Fonction pour changer la langue
+function toggleLang(){
+  lang = (lang==="fr")?"en":"fr";
+  localStorage.setItem("lang",lang);
+  updateLangButton();
+  render();
+)
+updateLangButton();
+  
 /* ================= FIREBASE + GAME ================= */
 function saveAccount(pseudo){ localStorage.setItem("account", JSON.stringify({pseudo})); }
 function loadAccount(){ const data=localStorage.getItem("account"); return data ? JSON.parse(data) : null; }
