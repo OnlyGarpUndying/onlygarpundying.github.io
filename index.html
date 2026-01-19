@@ -176,23 +176,20 @@ function joinRoom(){
     listenRoom(); screen="lobby"; render();
   });
 }
+  
 <script>
 function startGame(){ 
   if(name!==owner) return; 
   roles=assignRoles(players); 
-  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[],resultsShown:false}); 
+  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); 
 }
 
 function restartGame(){ 
   if(name!==owner) return; 
-  roles = assignRoles(players); 
-  db.ref("rooms/"+roomCode).update({
-    roles,
-    started: true,
-    votes: {},
-    votedPlayers: [],
-    resultsShown: false
-  });
+  roles=assignRoles(players); 
+  db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[]}); 
+  screen="role"; 
+  render(); 
 }
 
 function submitVoteLive(){
@@ -232,9 +229,6 @@ function renderRoleScreen(){
 }
 
 function showResults(){
-  if(name===owner) {
-    db.ref("rooms/"+roomCode).update({resultsShown:true});
-  }
   screen="results";
   render();
 }
@@ -251,9 +245,7 @@ function listenRoom(){
     votes = data.votes || {};
     votedPlayers = data.votedPlayers || [];
     
-    if(data.resultsShown) screen="results";
-    else screen = data.started ? "role" : "lobby";
-
+    screen = data.started ? "role" : "lobby";
     if(screen==="role") renderRoleScreen(); else render();
   });
 }
@@ -263,7 +255,7 @@ function render(){
   const account=loadAccount(); 
   const savedPseudo=account?account.pseudo:"";
 
-  let showFullMenu = (screen!=="role"); // Affiche tout sauf pendant la partie
+  let showFullMenu = (screen!=="role");
   app.innerHTML=`<div class="menu">
     <button onclick="screen='home'; render()">${t("home")}</button>
     ${showFullMenu?`<button onclick="screen='rules'; render()">${t("rules")}</button>`:""}
@@ -331,3 +323,4 @@ if(account) name=account.pseudo;
 document.getElementById("langBtn").innerText = lang==="fr"?"🇫🇷":"🇬🇧";
 render();
 </script>
+
