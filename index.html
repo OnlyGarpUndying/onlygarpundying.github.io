@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Among Trolls 🃏</title>
+<meta name="description" content="Among Trolls est un mode de jeu multijoueur de rôle caché, jouable gratuitement en ligne associer à n'importe quel jeu d'équipe.">
 <meta name="robots" content="index, follow">
 <meta name="author" content="Among Trolls">
 
@@ -16,9 +17,7 @@
 body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: background 1s; }
 .page { width: 100%; display: flex; justify-content: center; }
 .box { background: white; padding: 60px; border-radius: 20px; width: 600px; z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,0.2); }
-input, button { width: 100%; margin: 6px 0; padding: 10px; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-input[type=number] { font-size: 16px; padding: 8px 12px; text-align: center; height: 40px; -moz-appearance: textfield; }
-input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: inner-spin-button; width: 48px; height: 48px; }
+input, button, select { width: 100%; margin: 6px 0; padding: 10px; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
 button { border: none; cursor: pointer; background-color: #4f46e5; color: white; transition: 0.3s; }
 button:hover { background-color: #6366f1; transform: scale(1.05); }
 .menu { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 10px; background: rgba(255,255,255,0.9); padding: 6px; border-radius: 12px; }
@@ -31,12 +30,36 @@ hr { margin: 10px 0; }
 .role-popup { animation: pop 0.5s ease-out; }
 @keyframes pop { 0% { transform: scale(0); opacity:0; } 100% { transform: scale(1); opacity:1; } }
 .disabled { background-color: #a1a1aa !important; cursor: not-allowed !important; }
+
+/* Lang button */
+#langBtn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 999;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: none;
+  background: #111827;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+#langBtn:hover { background:#1f2937; }
 </style>
 </head>
+
 <body>
+
+<button id="langBtn" onclick="toggleLang()">EN</button>
+
 <div class="page">
   <div class="side-ad left-ad">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="1111111111" data-ad-format="vertical"></ins>
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-4250515135506041"
+      data-ad-slot="1111111111"
+      data-ad-format="vertical"></ins>
   </div>
 
   <div class="box">
@@ -45,7 +68,11 @@ hr { margin: 10px 0; }
   </div>
 
   <div class="side-ad right-ad">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4250515135506041" data-ad-slot="2222222222" data-ad-format="vertical"></ins>
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-4250515135506041"
+      data-ad-slot="2222222222"
+      data-ad-format="vertical"></ins>
   </div>
 </div>
 
@@ -54,6 +81,68 @@ hr { margin: 10px 0; }
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
+<script>
+/* ================= LANG ================= */
+let lang = localStorage.getItem("lang") || "fr";
+
+const i18n = {
+  fr: {
+    home:"Accueil", rules:"Règles", about:"À propos", description:"Description",
+    localAccount:"Compte local", pseudo:"Ton pseudo", savePseudo:"Sauvegarder le pseudo",
+    createJoin:"Créer ou rejoindre un salon",
+    players:"Nombre de joueurs (2 à 10)",
+    roles:"Rôles",
+    createRoom:"Créer un salon",
+    join:"Rejoindre",
+    roomCode:"Code du salon",
+    waiting:"⏳ En attente joueurs / rôles",
+    waitingOwner:"⏳ En attente du créateur de salon",
+    start:"Démarrer la partie",
+    finishVote:"Finis de voter",
+    results:"Résultat",
+    finalResults:"Résultats finaux",
+    descriptionText:"Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne.",
+    rulesText:"Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.",
+    aboutText:"Mini-jeu multijoueur gratuit",
+    pseudoRequired:"Pseudo requis",
+    roomNotFound:"Salon introuvable",
+    roomFull:"Salon complet"
+  },
+  en: {
+    home:"Home", rules:"Rules", about:"About", description:"Description",
+    localAccount:"Local account", pseudo:"Your nickname", savePseudo:"Save nickname",
+    createJoin:"Create or join a room",
+    players:"Number of players (2 to 10)",
+    roles:"Roles",
+    createRoom:"Create room",
+    join:"Join",
+    roomCode:"Room code",
+    waiting:"⏳ Waiting for players / roles",
+    waitingOwner:"⏳ Waiting for host",
+    start:"Start game",
+    finishVote:"Finish voting",
+    results:"Results",
+    finalResults:"Final results",
+    descriptionText:"Among Trolls is a free online multiplayer hidden-role game.",
+    rulesText:"Try-Harder: must win the game.<br>Impostor: must lose without being detected.<br>Swindler: pretends to be the impostor and wins.",
+    aboutText:"Free multiplayer mini-game",
+    pseudoRequired:"Nickname required",
+    roomNotFound:"Room not found",
+    roomFull:"Room is full"
+  }
+};
+
+function t(k){ return i18n[lang][k] || k; }
+
+function toggleLang(){
+  lang = lang==="fr"?"en":"fr";
+  localStorage.setItem("lang",lang);
+  document.getElementById("langBtn").innerText = lang==="fr"?"EN":"FR";
+  render();
+}
+document.getElementById("langBtn").innerText = lang==="fr"?"EN":"FR";
+
+/* ================= FIREBASE + GAME  ================= */
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCOcYbmpg8ULnLZavZFLDlERp3tlKOcdGY",
@@ -94,7 +183,7 @@ function savePseudoFromInput(){
 
 function createRoom(){
   name=document.getElementById("pseudo").value.trim(); 
-  if(!name) return alert("Pseudo requis / Username required");
+  if(!name) return alert("Pseudo requis");
   maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder();
   if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10");
   if(roleCounts.Imposteur+roleCounts.Escroc+roleCounts["Try-Harder"]!==maxPlayers) return alert("Le total des rôles doit égaler le nombre de joueurs");
@@ -106,16 +195,16 @@ function createRoom(){
 function joinRoom(){
   name=document.getElementById("pseudo").value.trim(); 
   roomCode=document.getElementById("code").value.trim().toUpperCase();
-  if(!name) return alert("Pseudo requis / Username required");
+  if(!name) return alert("Pseudo requis");
   db.ref("rooms/"+roomCode).get().then(snap=>{
-    if(!snap.exists()) return alert("Salon introuvable / Salon not found");
+    if(!snap.exists()) return alert("Salon introuvable");
     const data=snap.val(); 
     players=data.players||[]; owner=data.owner||""; 
     maxPlayers=data.maxPlayers||maxPlayers; 
     roleCounts=data.roleCounts||roleCounts;
     votes=data.votes||{};
     votedPlayers=data.votedPlayers||[];
-    if(players.length>=maxPlayers) return alert("Salon complet / Complete  room");
+    if(players.length>=maxPlayers) return alert("Salon complet");
     if(!players.includes(name)) players.push(name); 
     db.ref("rooms/"+roomCode+"/players").set(players);
     listenRoom(); screen="lobby"; render();
@@ -219,9 +308,9 @@ function render(){
     `;
   }
 
-  if(screen==="description"){ app.innerHTML+=`<h3>📝 Description</h3><p>Among Trolls est un mode de jeu multijoueur de rôle caché, jouable gratuitement en ligne associer à n'importe quel jeu d'équipe. / Among Trolls is a free-to-play online hidden role multiplayer game that can be played with any team-based game.</p>`; }
-  if(screen==="rules"){ app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie. / Try-Harder: must win the game.<br>Imposteur : doit perdre la partie sans se faire repérer. / Impostor: must lose the game without being detected.<br>Escroc : doit se faire passer pour l'imposteur et gagner la partie. / Cheater: must pretend to be the impostor and win the game.</p>`; }
-  if(screen==="about"){ app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit / Free multiplayer mini-game</p>`; }
+  if(screen==="description"){ app.innerHTML+=`<h3>📝 Description</h3><p>Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne.</p>`; }
+  if(screen==="rules"){ app.innerHTML+=`<h3>📜 Règles</h3><p>Try-Harder : doit gagner la partie.<br>Imposteur : doit perdre la partie sans se faire repérer.<br>Escroc : doit se faire passer pour l'imposteur et gagner.</p>`; }
+  if(screen==="about"){ app.innerHTML+=`<h3>ℹ️ À propos</h3><p>Mini-jeu multijoueur gratuit</p>`; }
 
   if(screen==="lobby"){
     app.innerHTML+=`<p>Code : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
@@ -264,4 +353,3 @@ render();
 </script>
 </body>
 </html>
-
