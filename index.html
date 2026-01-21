@@ -14,8 +14,45 @@
 body { 
   font-family: Arial, sans-serif; 
   background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24);
-  display: flex; justify-content: center; align-items: center; 
-  height: 100vh; margin: 0; transition: background 1s; 
+  margin: 0; 
+  transition: background 1s;
+  min-height: 100vh;
+  padding-bottom: 80px; /* espace pour que le footer ne recouvre pas le contenu */
+}
+
+.page { 
+  width: 100%; 
+  display: flex; 
+  justify-content: center; 
+  padding: 40px 0; 
+}
+
+footer.fixed-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  padding: 15px 0;
+  text-align: center;
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  font-size: 14px;
+}
+
+footer.fixed-footer a {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+footer.fixed-footer a:hover {
+  text-decoration: underline;
+}
+
 }
 .page { width: 100%; display: flex; justify-content: center; position: relative; }
 .box { 
@@ -271,26 +308,13 @@ if(account) name = account.pseudo;
 render();
 </script>
 
-    <footer>
-      <p>
-        <a href="privacy.html" target="_blank" rel="noopener noreferrer">
-          Politique de confidentialité
-        </a>
-        |
-        <a href="privacy_en.html" target="_blank" rel="noopener noreferrer">
-          Privacy Policy (EN)
-        </a>
-      </p>
-    </footer>
+<footer class="fixed-footer">
+  <a href="privacy.html" target="_blank" rel="noopener noreferrer">Politique de confidentialité</a>
+  <a href="description.html">Description</a>
+  <a href="rules.html">Règles</a>
+  <a href="about.html">À propos</a>
+</footer>
+
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
