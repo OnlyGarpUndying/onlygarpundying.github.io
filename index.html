@@ -127,35 +127,6 @@ function loadAccount(){const d=localStorage.getItem("account");if(!d)return null
 function generateCode(){return Math.random().toString(36).substring(2,7).toUpperCase();}
 function assignRoles(list){let a=[];for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) a.push(r);a.sort(()=>Math.random()-0.5); let o={}; list.forEach((p,i)=>o[p]=a[i]); return o;}
 function adjustTryHarder(){roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Impostor+roleCounts.Scammer); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;}
-  //-----------------------------ICI------------------------
-  body {
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* Footer confidentialité */
-.privacy-footer {
-  width: 100%;
-  margin-top: 120px;
-  padding: 20px 0;
-  text-align: center;
-
-  font-size: 14px;
-  opacity: 0.7;
-
-  /* sort du centrage visuel */
-  align-self: stretch;
-}
-
-.privacy-footer a {
-  color: #4f46e5;
-  text-decoration: none;
-}
-
-.privacy-footer a:hover {
-  text-decoration: underline;
-  opacity: 1;
-}
 
 // ------------------- RENDER -------------------
 function render(){
@@ -308,6 +279,7 @@ render();
 
 </body>
 </html>
+
 
 
 
