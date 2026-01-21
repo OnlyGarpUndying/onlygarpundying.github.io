@@ -260,7 +260,9 @@ function submitVote(){
 }
 
 // ------------------- RESULTS -------------------
-function showResults(){db.ref("rooms/"+roomCode+"/screen").set("results");}
+function showResults(){
+  db.ref("rooms/"+roomCode+"/screen").set("results");
+}
 
 // Auto-load pseudo
 const account = loadAccount();
@@ -268,8 +270,8 @@ if(account) name = account.pseudo;
 
 render();
 </script>
-  
-  <footer>
+
+<footer class="privacy-footer">
   <a href="privacy.html" target="_blank" rel="noopener noreferrer">
     Politique de confidentialité
   </a>
@@ -277,6 +279,8 @@ render();
 
 </body>
 </html>
+
+
 
 
 
