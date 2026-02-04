@@ -90,6 +90,25 @@ hr { margin: 10px 0; }
   transform: scale(1.1);
   box-shadow: 0 0 5px rgba(0,0,0,0.3);
 }
+
+/* Footer bar */
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.95);
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 0;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+.footer-bar a {
+  text-decoration: none;
+  color: #4f46e5;
+  font-weight: bold;
+}
+.footer-bar a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -108,6 +127,14 @@ hr { margin: 10px 0; }
   </div>
 </div>
 
+<div class="footer-bar">
+  <a href="privacy.html" target="_blank">Politique de confidentialité</a>
+  <a href="description.html" target="_blank">Description</a>
+  <a href="rules.html" target="_blank">Règles</a>
+  <a href="about.html" target="_blank">À propos</a>
+  <a href="History.html" target="_blank">Histoire</a>
+</div>
+
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 (adsbygoogle = window.adsbygoogle || []).push({});
@@ -123,7 +150,6 @@ const firebaseConfig = {
   messagingSenderId: "245950843484",
   appId: "1:245950843484:web:b4f808a0fcbf19d3e67499"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
@@ -163,13 +189,13 @@ langButtonsDiv.className = "lang-buttons";
 
 const frButton = document.createElement("button");
 frButton.className = "lang-button";
-frButton.innerHTML = "🇫🇷";
+frButton.innerHTML = "🇫🇷"; // Drapeau français
 frButton.title = "Français";
 frButton.onclick = ()=>{ language="fr"; render(); };
 
 const enButton = document.createElement("button");
 enButton.className = "lang-button";
-enButton.innerHTML = "🇬🇧";
+enButton.innerHTML = "🇬🇧"; // Drapeau anglais
 enButton.title = "English";
 enButton.onclick = ()=>{ language="en"; render(); };
 
@@ -184,8 +210,7 @@ function loadAccount(){ const data=localStorage.getItem("account"); if(!data) re
 // ------------------- Roles & Salon -------------------
 function generateCode(){return Math.random().toString(36).substring(2,7).toUpperCase();}
 function assignRoles(list){
-  let allRoles=[];
-  for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r);
+  let allRoles=[]; for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r);
   allRoles.sort(()=>Math.random()-0.5);
   let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]);
   return obj;
@@ -202,17 +227,13 @@ function render(){
   const account = loadAccount();
   const savedPseudo = account ? account.pseudo : "";
 
-  app.innerHTML=`
-    <div class="menu">
+  app.innerHTML=`<div class="menu">
       <button onclick="screen='home'; render()">${t.home}</button>
       <button onclick="screen='rules'; render()">${t.rules}</button>
       <button onclick="screen='about'; render()">${t.about}</button>
       <button onclick="screen='description'; render()">${t.description}</button>
-    </div>
-    <hr>
-  `;
+    </div><hr>`;
 
-  // HOME
   if(screen==="home"){
     adjustTryHarder();
     app.innerHTML+=`
@@ -233,15 +254,10 @@ function render(){
     `;
   }
 
-  // DESCRIPTION
   if(screen==="description"){app.innerHTML+=`<h3>📝 ${t.description}</h3><p>${t.descriptionText}</p>`;}
-
-  // RULES
   if(screen==="rules"){app.innerHTML+=`<h3>📜 ${t.rules}</h3><p>${t.rulesText.replace(/\n/g,"<br>")}</p>`;}
-
-  // ABOUT
   if(screen==="about"){app.innerHTML+=`<h3>ℹ️ ${t.about}</h3><p>${t.aboutText}</p>`;}
-  // LOBBY
+
   if(screen==="lobby"){
     app.innerHTML+=`<p>Code : <b>${roomCode}</b></p>
       <ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul>
@@ -256,62 +272,6 @@ function render(){
       }
     }else{
       app.innerHTML+=`<p>${t.waitingOwner}</p>`;
-    }
-  }
-
-  // ROLE / VOTE
-  if(screen==="role"){
-    const roleDisplay = translations[language][roles[name].toLowerCase()] || roles[name];
-    app.innerHTML+=`<p class="role-popup">${language==="fr"?"Ton rôle":"Your role"} : <b>${roleDisplay}</b></p>`;
-    app.innerHTML+="<h3>"+(language==="fr"?"Votez pour chaque joueur":"Vote for each player")+"</h3>";
-    players.forEach(p=>{
-      if(p!==name){
-        const v=votes[name] && votes[name][p] ? votes[name][p] : "";
-        app.innerHTML+=`
-          <label>${p} :
-            <select id="vote_${p}">
-              <option value="">--${language==="fr"?"Choisir":"Choose"}--</option>
-              <option value="Imposteur" ${v==="Imposteur"?"selected":""}>${t.impostor}</option>
-              <option value="Escroc" ${v==="Escroc"?"selected":""}>${t.scammer}</option>
-              <option value="Try-Harder" ${v==="Try-Harder"?"selected":""}>${t.tryHarder}</option>
-            </select>
-          </label>
-        `;
-      }
-    });
-    app.innerHTML+=`<button ${votedPlayers.includes(name)?"disabled class='disabled'":""} onclick="submitVote()">${t.finishVote}</button>`;
-    if(votedPlayers.length===players.length && name===owner){
-      app.innerHTML+=`<button onclick="showResults()">${t.results}</button>`;
-    }
-  }
-
-  // RESULTS
-  if(screen==="results"){
-    app.innerHTML+=`<h3>${t.finalResults}</h3>`;
-    app.innerHTML+=`
-      <table style="width:100%; border-collapse: collapse; font-family: Arial, sans-serif; text-align:center; margin-top:10px;">
-        <thead>
-          <tr style="background:#4f46e5; color:white;">
-            <th style="border:1px solid #000; padding:8px;">Player</th>
-            ${players.map(p=>`<th style="border:1px solid #000; padding:8px;">${p}<br>(${translations[language][roles[p].toLowerCase()]||roles[p]})</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${players.map((p,i)=>`
-            <tr style="background:${i%2===0?'#f9f9f9':'#ffffff'};">
-              <td style="border:1px solid #000; padding:8px;">${p}</td>
-              ${players.map(target=>{
-                if(p===target) return `<td style="border:1px solid #000; padding:8px;">--</td>`;
-                const voteValue = votes[p] && votes[p][target] ? votes[p][target] : "";
-                return `<td style="border:1px solid #000; padding:8px;">${translations[language][voteValue.toLowerCase()]||voteValue}</td>`;
-              }).join('')}
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-    if(name===owner){
-      app.innerHTML+=`<button style="margin-top:10px;" onclick="restartGame()">${t.newGame}</button>`;
     }
   }
 }
@@ -341,6 +301,7 @@ function joinRoom(){
   name=document.getElementById("pseudo").value.trim(); 
   roomCode=document.getElementById("code").value.trim().toUpperCase();
   if(!name) return alert(translations[language].pseudoRequired);
+  if(!roomCode) return alert(translations[language].roomNotFound);
   db.ref("rooms/"+roomCode).get().then(snap=>{
     if(!snap.exists()) return alert(translations[language].roomNotFound);
     const data=snap.val(); 
@@ -370,41 +331,6 @@ function listenRoom(){
     screen=data.screen || (data.started?"role":"lobby"); 
     render();
   });
-}
-
-// ------------------- GAME -------------------
-function startGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[], screen:"role"});}
-function restartGame(){if(name!==owner) return; roles=assignRoles(players); db.ref("rooms/"+roomCode).update({roles,started:true,votes:{},votedPlayers:[], screen:"role"}); screen="role"; render();}
-
-// ------------------- VOTE -------------------
-function submitVote(){
-  const v={};
-  players.forEach(p=>{
-    if(p!==name){
-      const val=document.getElementById("vote_"+p).value;
-      v[p]=val || "Non voté";
-    }
-  });
-
-  db.ref("rooms/"+roomCode+"/votes/"+name).set(v);
-
-  db.ref("rooms/"+roomCode+"/votedPlayers").once("value").then(snap=>{
-    let vp = snap.val() || [];
-    if(!vp.includes(name)) vp.push(name);
-    db.ref("rooms/"+roomCode+"/votedPlayers").set(vp);
-
-    // Si tout le monde a voté, changer l'écran en résultats
-    if(vp.length===players.length && name===owner){
-      db.ref("rooms/"+roomCode+"/screen").set("results");
-    }
-  });
-
-  render();
-}
-
-// ------------------- SHOW RESULTS -------------------
-function showResults(){
-  db.ref("rooms/"+roomCode+"/screen").set("results");
 }
 
 // Auto-load pseudo si compte existe
