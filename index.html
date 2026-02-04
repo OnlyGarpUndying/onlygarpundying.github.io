@@ -279,7 +279,45 @@ function savePseudoFromInput(){const pseudo=document.getElementById("pseudo").va
 
 // ------------------- ROOM -------------------
 function createRoom(){name=document.getElementById("pseudo").value.trim(); if(!name) return alert(translations[language].pseudoRequired); maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder(); if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10"); if(roleCounts.Impostor+roleCounts.Scammer+roleCounts["Try-Harder"]!==maxPlayers) return alert("Total roles must match players"); roomCode=generateCode(); players=[name]; owner=name; db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[],screen:"lobby"}); listenRoom(); screen="lobby"; render();}
-function joinRoom(){name=document.getElementById("pseudo").value.trim(); roomCode=document.getElementById("code").value.trim().toUpperCase(); if(!name) return alert(translations[language].pseudoRequired); db.ref("rooms/"+roomCode).get().then(snap=>{if(!snap.exists()) return alert(translations[language].roomNotFound); const data=snap.val(); players=data.players||[]; owner=data.owner||""; maxPlayers=data.maxPlayers||maxPlayers; roleCounts=data.roleCounts||roleCounts; votes=data.votes||{}; votedPlayers=data.votedPlayers||[]; if(players.length>=maxPlayers) return alert(translations[language].roomFull); if(!players.includes(name)) players.push(name); db.ref("rooms/"+roomCode+"/players").set(players); listenRoom(); screen="lobby"; render();});}
+
+// ✅ FONCTION joinRoom() CORRIGÉE
+function joinRoom(){
+  name = document.getElementById("pseudo").value.trim();
+  roomCode = document.getElementById("code").value.trim().toUpperCase();
+  if(!name) return alert(translations[language].pseudoRequired);
+
+  db.ref("rooms/"+roomCode).get().then(snap=>{
+    if(!snap.exists()) return alert(translations[language].roomNotFound);
+
+    const data = snap.val();
+    players = data.players || [];
+    owner = data.owner || "";
+    maxPlayers = data.maxPlayers || maxPlayers;
+    roleCounts = data.roleCounts || roleCounts;
+    votes = data.votes || {};
+    votedPlayers = data.votedPlayers || [];
+
+    if(players.length >= maxPlayers) return alert(translations[language].roomFull);
+
+    if(!players.includes(name)) {
+      players.push(name);
+      db.ref("rooms/"+roomCode+"/players").set(players).then(()=>{
+        // Mettre à jour l'état du lobby uniquement après l'ajout
+        db.ref("rooms/"+roomCode+"/screen").set("lobby").then(()=>{
+          listenRoom(); 
+          screen = "lobby"; 
+          render();
+        });
+      });
+    } else {
+      // Si le joueur était déjà dans le salon
+      listenRoom();
+      screen = "lobby";
+      render();
+    }
+  });
+}
+
 function listenRoom(){db.ref("rooms/"+roomCode).on("value",snap=>{if(!snap.exists()) return; const data=snap.val(); players=data.players||[]; roles=data.roles||{}; owner=data.owner||""; maxPlayers=data.maxPlayers||maxPlayers; roleCounts=data.roleCounts||roleCounts; votes=data.votes||{}; votedPlayers=data.votedPlayers||[]; screen=data.screen || (data.started?"role":"lobby"); render();});}
 
 // ------------------- GAME -------------------
@@ -318,4 +356,3 @@ render();
 
 </body>
 </html>
-
