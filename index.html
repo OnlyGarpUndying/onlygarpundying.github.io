@@ -204,7 +204,6 @@ function render(){
   if(screen==="rules"){app.innerHTML+=`<h3>📜 ${t.rules}</h3><p>${t.rulesText.replace(/\n/g,"<br>")}</p>`;}
   if(screen==="about"){app.innerHTML+=`<h3>ℹ️ ${t.about}</h3><p>${t.aboutText}</p>`;}
 
-  // ---------- LOBBY ----------
   if(screen==="lobby"){
     app.innerHTML+=`<p>${language==='fr'?'Code':'Code'} : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
     if(name===owner){
@@ -219,7 +218,6 @@ function render(){
     }
   }
 
-  // ---------- ROLE ----------
   if(screen==="role"){
     app.innerHTML+=`<p class="role-popup">Role: <b>${translationsRoles[roles[name].toLowerCase()][language]}</b></p>`;
     app.innerHTML+="<h3>Vote for each player</h3>";
@@ -241,7 +239,6 @@ function render(){
     app.innerHTML+=`<button onclick="submitVote()">${t.finishVote}</button>`;
   }
 
-  // ---------- RESULTS ----------
   if(screen==="results"){
     app.innerHTML+=`<h3>${t.finalResults}</h3>`;
     app.innerHTML+=`
@@ -297,22 +294,20 @@ function joinRoom(){
     votes = data.votes || {};
     votedPlayers = data.votedPlayers || [];
 
-    if(players.length >= maxPlayers) return alert(translations[language].roomFull);
+    if(players.length >= maxPlayers && !players.includes(name)) return alert(translations[language].roomFull);
 
     if(!players.includes(name)) {
       players.push(name);
       db.ref("rooms/"+roomCode+"/players").set(players).then(()=>{
-        // Mettre à jour l'état du lobby uniquement après l'ajout
         db.ref("rooms/"+roomCode+"/screen").set("lobby").then(()=>{
-          listenRoom(); 
-          screen = "lobby"; 
+          listenRoom();
+          screen="lobby";
           render();
         });
       });
     } else {
-      // Si le joueur était déjà dans le salon
       listenRoom();
-      screen = "lobby";
+      screen="lobby";
       render();
     }
   });
@@ -329,9 +324,13 @@ function submitVote(){
   const v={};
   players.forEach(p=>{if(p!==name){const val=document.getElementById("vote_"+p).value; v[p]=val || "Non voté";}});
   db.ref("rooms/"+roomCode+"/votes/"+name).set(v);
-  db.ref("rooms/"+roomCode+"/votedPlayers").once("value").then(snap=>{let vp = snap.val() || []; if(!vp.includes(name)) vp.push(name); db.ref("rooms/"+roomCode+"/votedPlayers").set(vp);});
-  db.ref("rooms/"+roomCode+"/screen").set(votedPlayers.length+1>=players.length?"results":"role");
-  render();
+  db.ref("rooms/"+roomCode+"/votedPlayers").once("value").then(snap=>{
+    let vp = snap.val() || [];
+    if(!vp.includes(name)) vp.push(name);
+    db.ref("rooms/"+roomCode+"/votedPlayers").set(vp).then(()=>{
+      db.ref("rooms/"+roomCode+"/screen").set(vp.length >= players.length ? "results" : "role");
+    });
+  });
 }
 
 // ------------------- RESULTS -------------------
