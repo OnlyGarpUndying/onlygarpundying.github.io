@@ -15,10 +15,10 @@ body {
   font-family: Arial, sans-serif; 
   background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24);
   display: flex; justify-content: center; align-items: center; 
-  height: 100vh; margin: 0; transition: background 1s; 
   flex-direction: column;
+  min-height: 100vh; margin: 0; transition: background 1s; 
 }
-.page { width: 100%; display: flex; justify-content: center; position: relative; flex: 1; }
+.page { width: 100%; display: flex; justify-content: center; position: relative; flex: 1; margin-bottom: 60px; }
 .box { 
   background: white; padding: 60px; border-radius: 20px; width: 600px; 
   z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,0.2); 
@@ -73,10 +73,10 @@ th { background:#4f46e5; color:white; }
 .footer {
   width: 100%;
   background: #ffffffcc;
-  padding: 10px;
+  padding: 6px;
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -86,9 +86,9 @@ th { background:#4f46e5; color:white; }
 .footer button {
   background-color: #4f46e5;
   color: white;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 14px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
   cursor: pointer;
 }
 .footer button:hover { background-color: #6366f1; }
@@ -108,11 +108,11 @@ th { background:#4f46e5; color:white; }
 
 <!-- FOOTER FIXE -->
 <div class="footer">
-  <button onclick="window.open('privacy.html','_blank')">Privacy</button>
+  <button onclick="window.open('privacy.html','_blank')">Politique de confidentialité</button>
   <button onclick="window.open('description.html','_blank')">Description</button>
-  <button onclick="window.open('rules.html','_blank')">Rules</button>
-  <button onclick="window.open('about.html','_blank')">About</button>
-  <button onclick="window.open('history.html','_blank')">History</button>
+  <button onclick="window.open('rules.html','_blank')">Règles</button>
+  <button onclick="window.open('about.html','_blank')">A propos</button>
+  <button onclick="window.open('History.html','_blank')">Histoire</button>
 </div>
 
 <script>
@@ -286,26 +286,48 @@ function createRoom(){
 }
 
 function joinRoom(){
-  name=document.getElementById("pseudo").value.trim();
-  roomCode=document.getElementById("code").value.trim().toUpperCase();
+  name = document.getElementById("pseudo").value.trim();
+  roomCode = document.getElementById("code").value.trim().toUpperCase();
   if(!name) return alert(translations[language].pseudoRequired);
+  
   db.ref("rooms/"+roomCode).get().then(snap=>{
     if(!snap.exists()) return alert(translations[language].roomNotFound);
-    const data=snap.val();
-    players=data.players||[]; owner=data.owner||""; maxPlayers=data.maxPlayers||maxPlayers; roleCounts=data.roleCounts||roleCounts; votes=data.votes||{}; votedPlayers=data.votedPlayers||[];
-    if(players.length>=maxPlayers) return alert(translations[language].roomFull);
-    if(!players.includes(name)) players.push(name);
-    db.ref("rooms/"+roomCode+"/players").set(players);
-    listenRoom(); screen="lobby"; render();
+    const data = snap.val();
+    players = data.players || [];
+    owner = data.owner || "";
+    maxPlayers = data.maxPlayers || maxPlayers;
+    roleCounts = data.roleCounts || roleCounts;
+    votes = data.votes || {};
+    votedPlayers = data.votedPlayers || [];
+
+    if(players.includes(name)) {
+      // joueur déjà présent
+    } else if(players.length >= maxPlayers) {
+      return alert(translations[language].roomFull);
+    } else {
+      players.push(name);
+      db.ref("rooms/"+roomCode+"/players").set(players);
+    }
+
+    listenRoom();
+    screen = "lobby";
+    render();
   });
 }
 
 function listenRoom(){
-  db.ref("rooms/"+roomCode).on("value",snap=>{
+  db.ref("rooms/"+roomCode).on("value", snap => {
     if(!snap.exists()) return;
-    const data=snap.val();
-    players=data.players||[]; roles=data.roles||{}; owner=data.owner||""; maxPlayers=data.maxPlayers||maxPlayers; roleCounts=data.roleCounts||roleCounts; votes=data.votes||{}; votedPlayers=data.votedPlayers||[];
-    screen=data.screen || (data.started?"role":"lobby"); render();
+    const data = snap.val();
+    players = data.players || [];
+    roles = data.roles || {};
+    owner = data.owner || "";
+    maxPlayers = data.maxPlayers || maxPlayers;
+    roleCounts = data.roleCounts || roleCounts;
+    votes = data.votes || {};
+    votedPlayers = data.votedPlayers || [];
+    screen = data.screen || (data.started ? "role" : "lobby");
+    render();
   });
 }
 
