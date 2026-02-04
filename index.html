@@ -275,8 +275,21 @@ function render(){
 function savePseudoFromInput(){const pseudo=document.getElementById("pseudo").value.trim(); if(!pseudo) return alert(translations[language].pseudoRequired); saveAccount(pseudo); name=pseudo; render();}
 
 // ------------------- ROOM -------------------
-function createRoom(){name=document.getElementById("pseudo").value.trim(); if(!name) return alert(translations[language].pseudoRequired); maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder(); if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10"); if(roleCounts.Impostor+roleCounts.Scammer+roleCounts["Try-Harder"]!==maxPlayers) return alert("Total roles must match players"); roomCode=generateCode(); players=[name]; owner=name; db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[],screen:"lobby"}); listenRoom(); screen="lobby"; render();}
+// Création d'un salon
+function createRoom(){
+  name=document.getElementById("pseudo").value.trim(); 
+  if(!name) return alert(translations[language].pseudoRequired); 
+  maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); 
+  adjustTryHarder(); 
+  if(maxPlayers<2||maxPlayers>10) return alert("Nombre de joueurs entre 2 et 10"); 
+  if(roleCounts.Impostor+roleCounts.Scammer+roleCounts["Try-Harder"]!==maxPlayers) return alert("Total roles must match players"); 
+  roomCode=generateCode(); 
+  players=[name]; owner=name; 
+  db.ref("rooms/"+roomCode).set({players,owner,started:false,maxPlayers,roleCounts,votes:{},votedPlayers:[],screen:"lobby"}); 
+  listenRoom(); screen="lobby"; render();
+}
 
+// 🔹 Fonction robuste joinRoom() avec transaction
 function joinRoom(){
   name = document.getElementById("pseudo").value.trim();
   roomCode = document.getElementById("code").value.trim().toUpperCase();
@@ -284,38 +297,46 @@ function joinRoom(){
   if(!roomCode) return alert(translations[language].roomNotFound);
 
   const roomRef = db.ref("rooms/"+roomCode);
+  listenRoom();
 
-  roomRef.get().then(snap=>{
-    if(!snap.exists()) return alert(translations[language].roomNotFound);
+  roomRef.transaction(currentData => {
+    if(currentData === null) {
+      alert(translations[language].roomNotFound);
+      return;
+    }
 
-    let data = snap.val();
-    players = data.players || [];
-    owner = data.owner || "";
-    maxPlayers = data.maxPlayers || maxPlayers;
-    roleCounts = data.roleCounts || roleCounts;
-    votes = data.votes || {};
-    votedPlayers = data.votedPlayers || [];
+    if(!currentData.players) currentData.players = [];
 
-    if(players.length >= maxPlayers && !players.includes(name)) return alert(translations[language].roomFull);
+    if(currentData.players.includes(name)) {
+      currentData.screen = "lobby";
+      return currentData;
+    }
 
-    if(!players.includes(name)){
-      players.push(name);
-      // Mettre à jour Firebase avec le nouveau joueur ET le screen
-      roomRef.update({players, screen:"lobby"}).then(()=>{
-        listenRoom();
-        screen="lobby";
-        render();
-      });
-    } else {
-      roomRef.update({screen:"lobby"}).then(()=>{
-        listenRoom();
-        screen="lobby";
-        render();
-      });
+    if(currentData.players.length >= currentData.maxPlayers) {
+      alert(translations[language].roomFull);
+      return; 
+    }
+
+    currentData.players.push(name);
+    currentData.screen = "lobby";
+    return currentData;
+  }, (error, committed, snapshot) => {
+    if(error) return console.error(error);
+    if(committed){
+      const data = snapshot.val();
+      players = data.players || [];
+      owner = data.owner || "";
+      maxPlayers = data.maxPlayers || maxPlayers;
+      roleCounts = data.roleCounts || roleCounts;
+      votes = data.votes || {};
+      votedPlayers = data.votedPlayers || [];
+      screen = data.screen || "lobby";
+      render();
     }
   });
 }
 
+// 🔹 Écoute en temps réel du salon
 function listenRoom(){
   db.ref("rooms/"+roomCode).on("value", snap=>{
     if(!snap.exists()) return;
@@ -351,9 +372,7 @@ function submitVote(){
 }
 
 // ------------------- RESULTS -------------------
-function showResults(){
-  db.ref("rooms/"+roomCode+"/screen").set("results");
-}
+function showResults(){db.ref("rooms/"+roomCode+"/screen").set("results");}
 
 // Auto-load pseudo
 const account = loadAccount();
@@ -372,4 +391,3 @@ render();
 
 </body>
 </html>
-
