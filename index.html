@@ -129,7 +129,6 @@ const firebaseConfig = {
   messagingSenderId: "245950843484",
   appId: "1:245950843484:web:b4f808a0fcbf19d3e67499"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
@@ -165,112 +164,6 @@ function generateCode(){return Math.random().toString(36).substring(2,7).toUpper
 function assignRoles(list){let a=[];for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) a.push(r);a.sort(()=>Math.random()-0.5); let o={}; list.forEach((p,i)=>o[p]=a[i]); return o;}
 function adjustTryHarder(){roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Impostor+roleCounts.Scammer); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;}
 
-// ------------------- RENDER -------------------
-function render(){
-  const app=document.getElementById("app");
-  const t=translations[language];
-  const savedPseudo = loadAccount()?.pseudo || "";
-  app.innerHTML=`
-    <div class="menu">
-      <button onclick="screen='home'; render()">${language==='fr'?'Accueil':'Home'}</button>
-      <button onclick="screen='rules'; render()">${language==='fr'?'Règles':'Rules'}</button>
-      <button onclick="screen='about'; render()">${language==='fr'?'À propos':'About'}</button>
-      <button onclick="screen='description'; render()">${language==='fr'?'Description':'Description'}</button>
-    </div>
-    <hr>
-  `;
-
-  if(screen==="home"){
-    adjustTryHarder();
-    app.innerHTML+=`
-      <h3>${t.account}</h3>
-      <input id="pseudo" placeholder="${language==='fr'?'Pseudo':'Nickname'}" value="${savedPseudo}">
-      <button onclick="savePseudoFromInput()">${t.savePseudo}</button>
-      <hr>
-      <h4>${language==='fr'?'Créer ou rejoindre un salon':'Create or join a room'}</h4>
-      <label>${t.numPlayers}</label>
-      <input id="maxPlayersInput" type="number" min="2" max="10" value="${maxPlayers}" onchange="maxPlayers=parseInt(this.value); adjustTryHarder(); render()">
-      <h4>${t.roles}</h4>
-      <label>${t.impostor} : <input id="nbImposteur" type="number" min="0" max="10" value="${roleCounts.Impostor}" onchange="roleCounts.Impostor=parseInt(this.value); adjustTryHarder(); render()"></label>
-      <label>${t.scammer} : <input id="nbEscroc" type="number" min="0" max="10" value="${roleCounts.Scammer}" onchange="roleCounts.Scammer=parseInt(this.value); adjustTryHarder(); render()"></label>
-      <label>${t.tryHarder} : <input type="number" value="${roleCounts['Try-Harder']}" disabled></label>
-      <button onclick="createRoom()">${t.createRoom}</button>
-      <input id="code" placeholder="${language==='fr'?'Code du salon':'Room code'}">
-      <button onclick="joinRoom()">${t.joinRoom}</button>
-    `;
-  }
-
-  if(screen==="description"){app.innerHTML+=`<h3>📝 ${t.description}</h3><p>${t.descriptionText}</p>`;}
-  if(screen==="rules"){app.innerHTML+=`<h3>📜 ${t.rules}</h3><p>${t.rulesText.replace(/\n/g,"<br>")}</p>`;}
-  if(screen==="about"){app.innerHTML+=`<h3>ℹ️ ${t.about}</h3><p>${t.aboutText}</p>`;}
-
-  if(screen==="lobby"){
-    app.innerHTML+=`<p>${language==='fr'?'Code':'Code'} : <b>${roomCode}</b></p><ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul><p>(${players.length}/${maxPlayers})</p>`;
-    if(name===owner){
-      const totalRoles=roleCounts.Impostor+roleCounts.Scammer+roleCounts["Try-Harder"];
-      if(players.length===maxPlayers && totalRoles===maxPlayers){
-        app.innerHTML+=`<button onclick="startGame()">${t.startGame}</button>`;
-      }else{
-        app.innerHTML+=`<p>${t.waiting}</p>`;
-      }
-    }else{
-      app.innerHTML+=`<p>${t.waitingOwner}</p>`;
-    }
-  }
-
-  if(screen==="role"){
-    app.innerHTML+=`<p class="role-popup">Role: <b>${translationsRoles[roles[name].toLowerCase()][language]}</b></p>`;
-    app.innerHTML+="<h3>Vote for each player</h3>";
-    players.forEach(p=>{
-      if(p!==name){
-        const v=votes[name] && votes[name][p] ? votes[name][p] : "";
-        app.innerHTML+=`
-          <label>${p} :
-            <select id="vote_${p}">
-              <option value="">--Choose--</option>
-              <option value="Impostor" ${v==="Impostor"?"selected":""}>${translationsRoles["impostor"][language]}</option>
-              <option value="Scammer" ${v==="Scammer"?"selected":""}>${translationsRoles["scammer"][language]}</option>
-              <option value="Try-Harder" ${v==="Try-Harder"?"selected":""}>${translationsRoles["try-harder"][language]}</option>
-            </select>
-          </label>
-        `;
-      }
-    });
-    app.innerHTML+=`<button onclick="submitVote()">${t.finishVote}</button>`;
-  }
-
-  if(screen==="results"){
-    app.innerHTML+=`<h3>${t.finalResults}</h3>`;
-    app.innerHTML+=`
-      <table>
-        <thead>
-          <tr>
-            <th>Player</th>
-            ${players.map(p=>`<th>${p}<br>(${translationsRoles[roles[p].toLowerCase()][language]})</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${players.map((p,i)=>`
-            <tr style="background:${i%2===0?'#f9f9f9':'#ffffff'};">
-              <td>${p}</td>
-              ${players.map(target=>{
-                if(p===target){ return `<td>--</td>`; }
-                else{
-                  const voteValue=votes[p] && votes[p][target]?translationsRoles[votes[p][target].toLowerCase()][language]: "";
-                  return `<td>${voteValue}</td>`;
-                }
-              }).join('')}
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-    if(name===owner){
-      app.innerHTML+=`<button style="margin-top:10px;" onclick="restartGame()">${t.newGame}</button>`;
-    }
-  }
-}
-
 // ------------------- ACCOUNT -------------------
 function savePseudoFromInput(){const pseudo=document.getElementById("pseudo").value.trim(); if(!pseudo) return alert(translations[language].pseudoRequired); saveAccount(pseudo); name=pseudo; render();}
 
@@ -289,6 +182,7 @@ function createRoom(){
   listenRoom(); screen="lobby"; render();
 }
 
+// 🔹 Fonction joinRoom() corrigée pour multi-page
 function joinRoom() {
   name = document.getElementById("pseudo").value.trim();
   roomCode = document.getElementById("code").value.trim().toUpperCase();
@@ -298,6 +192,7 @@ function joinRoom() {
 
   const roomRef = db.ref("rooms/" + roomCode);
 
+  // Récupérer les données existantes
   roomRef.get().then(snap => {
     if (!snap.exists()) return alert(translations[language].roomNotFound);
 
@@ -305,23 +200,20 @@ function joinRoom() {
     if (!data.players) data.players = [];
 
     if (data.players.includes(name)) {
-      // Si déjà présent, juste passer au lobby
-      roomRef.update({ screen: "lobby" }).then(() => {
-        listenRoom();
-      });
+      // Déjà présent → juste passer au lobby
+      roomRef.update({screen: "lobby"}).then(listenRoom);
       return;
     }
 
     if (data.players.length >= data.maxPlayers) return alert(translations[language].roomFull);
 
-    // Ajouter le joueur
+    // Ajouter le joueur et mettre à jour le screen
     data.players.push(name);
-    roomRef.update({ players: data.players, screen: "lobby" }).then(() => {
-      listenRoom();
-    });
+    roomRef.update({players: data.players, screen: "lobby"}).then(listenRoom);
   });
 }
 
+// 🔹 Écoute du salon en temps réel
 function listenRoom() {
   if (!roomCode) return;
 
@@ -337,9 +229,6 @@ function listenRoom() {
     votes = data.votes || {};
     votedPlayers = data.votedPlayers || [];
     screen = data.screen || (data.started ? "role" : "lobby");
-
-    // Assurer que le joueur local est bien pris en compte
-    if (!players.includes(name)) players.push(name);
 
     render();
   });
@@ -383,4 +272,3 @@ render();
 
 </body>
 </html>
-
