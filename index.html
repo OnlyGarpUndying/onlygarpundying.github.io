@@ -14,104 +14,33 @@ crossorigin="anonymous"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-body { 
-  font-family: Arial, sans-serif; 
-  background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24);
-  display: flex; justify-content: center; align-items: center; 
-  height: 100vh; margin: 0; transition: background 1s; 
-  position: relative;
-}
-.page { width: 100%; display: flex; justify-content: center; }
-.box { 
-  background: white; padding: 60px; border-radius: 20px; width: 600px; 
-  z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,0.2); position: relative;
-}
-input, button { 
-  width: 100%; margin: 6px 0; padding: 10px; border-radius: 10px; 
-  font-size: 16px; box-sizing: border-box; 
-}
-input[type=number] { 
-  font-size: 16px; padding: 8px 12px; text-align: center; 
-  height: 40px; -moz-appearance: textfield; 
-}
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-  -webkit-appearance: inner-spin-button;
-  width: 48px; height: 48px;
-}
-button { 
-  border: none; cursor: pointer; background-color: #4f46e5; color: white; transition: 0.3s; 
-}
-button:hover { background-color: #6366f1; transform: scale(1.05); }
-
-.menu { 
-  display: flex; 
-  justify-content: space-between; 
-  gap: 8px; 
-  margin-bottom: 10px;
-  background: rgba(255,255,255,0.9); 
-  padding: 6px; 
-  border-radius: 12px; 
-}
-.menu button { width: 100%; font-size: 12px; }
-
-hr { margin: 10px 0; }
-.side-ad { width: 160px; position: fixed; top: 50%; transform: translateY(-50%); }
-.left-ad { left: 10px; }
-.right-ad { right: 10px; }
-@media (max-width: 900px) { .side-ad { display: none; } }
-.end-ad { margin-top: 15px; text-align: center; }
+/* -- Garde ton CSS tel quel, incluant lang-buttons et footer-bar -- */
+body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #f3f4f6, #d1d5db, #fbbf24); display:flex; justify-content:center; align-items:center; height:100vh; margin:0; transition: background 1s; position:relative; }
+.page { width:100%; display:flex; justify-content:center; }
+.box { background:white; padding:60px; border-radius:20px; width:600px; z-index:2; box-shadow:0 12px 28px rgba(0,0,0,0.2); position:relative; }
+input, button { width:100%; margin:6px 0; padding:10px; border-radius:10px; font-size:16px; box-sizing:border-box; }
+input[type=number] { font-size:16px; padding:8px 12px; text-align:center; height:40px; -moz-appearance:textfield; }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: inner-spin-button; width:48px; height:48px; }
+button { border:none; cursor:pointer; background-color:#4f46e5; color:white; transition:0.3s; }
+button:hover { background-color:#6366f1; transform:scale(1.05); }
+.menu { display:flex; justify-content:space-between; gap:8px; margin-bottom:10px; background:rgba(255,255,255,0.9); padding:6px; border-radius:12px; }
+.menu button { width:100%; font-size:12px; }
+hr { margin:10px 0; }
+.side-ad { width:160px; position:fixed; top:50%; transform:translateY(-50%); }
+.left-ad { left:10px; }
+.right-ad { right:10px; }
+@media (max-width:900px) { .side-ad { display:none; } }
+.end-ad { margin-top:15px; text-align:center; }
 .role-popup { animation: pop 0.5s ease-out; }
-@keyframes pop { 0% { transform: scale(0); opacity:0; } 100% { transform: scale(1); opacity:1; } }
-.disabled { background-color: #a1a1aa !important; cursor: not-allowed !important; }
-
-/* Language buttons */
-.lang-buttons {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  display: flex;
-  gap: 5px;
-  z-index: 10;
-}
-.lang-button {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  font-size: 0;
-  text-align: center;
-  background-color: white;
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.lang-button img { width: 24px; height: 24px; }
-.lang-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 5px rgba(0,0,0,0.3);
-}
-
-/* Footer bar */
-.footer-bar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: rgba(255,255,255,0.95);
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  padding: 10px 0;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-}
-.footer-bar a {
-  text-decoration: none;
-  color: #4f46e5;
-  font-weight: bold;
-}
-.footer-bar a:hover { text-decoration: underline; }
+@keyframes pop { 0% { transform:scale(0); opacity:0; } 100% { transform:scale(1); opacity:1; } }
+.disabled { background-color:#a1a1aa !important; cursor:not-allowed !important; }
+.lang-buttons { position:absolute; top:15px; right:15px; display:flex; gap:5px; z-index:10; }
+.lang-button { width:30px; height:30px; border-radius:50%; border:1px solid #ccc; cursor:pointer; font-size:0; text-align:center; background-color:white; transition: transform 0.2s, box-shadow 0.2s; display:flex; align-items:center; justify-content:center; }
+.lang-button img { width:24px; height:24px; }
+.lang-button:hover { transform:scale(1.1); box-shadow:0 0 5px rgba(0,0,0,0.3); }
+.footer-bar { position:fixed; bottom:0; width:100%; background:rgba(255,255,255,0.95); display:flex; justify-content:center; gap:20px; padding:10px 0; box-shadow:0 -2px 10px rgba(0,0,0,0.1); }
+.footer-bar a { text-decoration:none; color:#4f46e5; font-weight:bold; }
+.footer-bar a:hover { text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -155,54 +84,35 @@ let screen="home", roomCode="", name="", players=[], roles={}, owner="", votes={
 let roleCounts={Impostor:1, Scammer:1, "Try-Harder":3};
 let language="fr";
 
-// ------------------- TRANSLATIONS -------------------
 const translations = {
-  fr: { home:"Accueil", rules:"Règles", about:"À propos", description:"Description", account:"Compte local", savePseudo:"Sauvegarder le pseudo", createRoom:"Créer un salon", joinRoom:"Rejoindre", numPlayers:"Nombre de joueurs (2 à 10) :", roles:"Rôles :", impostor:"Imposteur", scammer:"Escroc", tryHarder:"Try-Harder", startGame:"Démarrer la partie", waiting:"⏳ En attente joueurs / rôles", waitingOwner:"⏳ En attente du créateur de salon", finishVote:"Finis de voter", results:"Résultat", finalResults:"Résultats finaux", newGame:"Nouvelle partie", pseudoRequired:"Pseudo requis", roomNotFound:"Salon introuvable", roomFull:"Salon complet", descriptionText:"Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne à partir de n'importe quel autre jeu.", rulesText:"Try-Harder : doit gagner la partie.\nImposteur : doit perdre la partie sans se faire repérer.\nEscroc : doit se faire passer pour l'imposteur et gagner.", aboutText:"Mini-jeu multijoueur gratuit"},
-  en: { home:"Home", rules:"Rules", about:"About", description:"Description", account:"Local account", savePseudo:"Save nickname", createRoom:"Create room", joinRoom:"Join", numPlayers:"Number of players (2 to 10):", roles:"Roles:", impostor:"Impostor", scammer:"Scammer", tryHarder:"Try-Harder", startGame:"Start Game", waiting:"⏳ Waiting for players / roles", waitingOwner:"⏳ Waiting for the room creator", finishVote:"Finish voting", results:"Results", finalResults:"Final results", newGame:"New Game", pseudoRequired:"Nickname required", roomNotFound:"Room not found", roomFull:"Room full", descriptionText:"Among Trolls is a hidden-role multiplayer game playable online for free from any device.", rulesText:"Try-Harder: must win the game.\nImpostor: must lose the game without being noticed.\nScammer: must pretend to be the Impostor and win.", aboutText:"Free multiplayer mini-game"}
+  fr:{home:"Accueil", rules:"Règles", about:"À propos", description:"Description", account:"Compte local", savePseudo:"Sauvegarder le pseudo", createRoom:"Créer un salon", joinRoom:"Rejoindre", numPlayers:"Nombre de joueurs (2 à 10) :", roles:"Rôles :", impostor:"Imposteur", scammer:"Escroc", tryHarder:"Try-Harder", startGame:"Démarrer la partie", waiting:"⏳ En attente joueurs / rôles", waitingOwner:"⏳ En attente du créateur de salon", pseudoRequired:"Pseudo requis", roomNotFound:"Salon introuvable", roomFull:"Salon complet", descriptionText:"Among Trolls est un jeu multijoueur de rôle caché jouable gratuitement en ligne à partir de n'importe quel autre jeu.", rulesText:"Try-Harder : doit gagner la partie.\nImposteur : doit perdre la partie sans se faire repérer.\nEscroc : doit se faire passer pour l'imposteur et gagner.", aboutText:"Mini-jeu multijoueur gratuit"},
+  en:{home:"Home", rules:"Rules", about:"About", description:"Description", account:"Local account", savePseudo:"Save nickname", createRoom:"Create room", joinRoom:"Join", numPlayers:"Number of players (2 to 10):", roles:"Roles:", impostor:"Impostor", scammer:"Scammer", tryHarder:"Try-Harder", startGame:"Start Game", waiting:"⏳ Waiting for players / roles", waitingOwner:"⏳ Waiting for the room creator", pseudoRequired:"Nickname required", roomNotFound:"Room not found", roomFull:"Room full", descriptionText:"Among Trolls is a hidden-role multiplayer game playable online for free from any device.", rulesText:"Try-Harder: must win the game.\nImpostor: must lose the game without being noticed.\nScammer: must pretend to be the Impostor and win.", aboutText:"Free multiplayer mini-game"}
 };
 
-// ------------------- LANGUAGE BUTTONS -------------------
-const langButtonsDiv = document.createElement("div");
-langButtonsDiv.className = "lang-buttons";
-
-// utiliser images de drapeau pour fiabilité
-const frButton = document.createElement("button");
-frButton.className = "lang-button";
-frButton.title = "Français";
-const frImg = document.createElement("img");
-frImg.src = "https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg";
-frImg.alt = "FR";
-frButton.appendChild(frImg);
-frButton.onclick = ()=>{ language="fr"; render(); };
-
-const enButton = document.createElement("button");
-enButton.className = "lang-button";
-enButton.title = "English";
-const enImg = document.createElement("img");
-enImg.src = "https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg";
-enImg.alt = "EN";
-enButton.appendChild(enImg);
-enButton.onclick = ()=>{ language="en"; render(); };
-
-langButtonsDiv.appendChild(frButton);
-langButtonsDiv.appendChild(enButton);
+// -- LANG BUTTONS --
+const langButtonsDiv=document.createElement("div"); langButtonsDiv.className="lang-buttons";
+const frButton=document.createElement("button"); frButton.className="lang-button"; frButton.title="Français";
+const frImg=document.createElement("img"); frImg.src="https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg"; frImg.alt="FR"; frButton.appendChild(frImg);
+frButton.onclick=()=>{language="fr"; render();};
+const enButton=document.createElement("button"); enButton.className="lang-button"; enButton.title="English";
+const enImg=document.createElement("img"); enImg.src="https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg"; enImg.alt="EN"; enButton.appendChild(enImg);
+enButton.onclick=()=>{language="en"; render();};
+langButtonsDiv.appendChild(frButton); langButtonsDiv.appendChild(enButton);
 document.querySelector(".box").appendChild(langButtonsDiv);
 
-// ------------------- Compte local -------------------
-function saveAccount(pseudo){ localStorage.setItem("account", JSON.stringify({ pseudo })); }
+// -- Compte local --
+function saveAccount(pseudo){ localStorage.setItem("account", JSON.stringify({pseudo})); }
 function loadAccount(){ const data=localStorage.getItem("account"); if(!data) return null; return JSON.parse(data); }
 
-// ------------------- Roles & Salon -------------------
-function generateCode(){return Math.random().toString(36).substring(2,7).toUpperCase();}
-function assignRoles(list){let allRoles=[]; for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r); allRoles.sort(()=>Math.random()-0.5); let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]); return obj;}
-function adjustTryHarder(){roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Impostor+roleCounts.Scammer); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0;}
+// -- Roles & Salon --
+function generateCode(){ return Math.random().toString(36).substring(2,7).toUpperCase(); }
+function assignRoles(list){ let allRoles=[]; for(let r in roleCounts) for(let i=0;i<roleCounts[r];i++) allRoles.push(r); allRoles.sort(()=>Math.random()-0.5); let obj={}; list.forEach((p,i)=>obj[p]=allRoles[i]); return obj; }
+function adjustTryHarder(){ roleCounts["Try-Harder"]=maxPlayers-(roleCounts.Impostor+roleCounts.Scammer); if(roleCounts["Try-Harder"]<0) roleCounts["Try-Harder"]=0; }
 
-// ------------------- RENDER -------------------
+// -- Render --
 function render(){
-  const app=document.getElementById("app");
-  const t = translations[language];
-  const account = loadAccount();
-  const savedPseudo = account ? account.pseudo : "";
+  const app=document.getElementById("app"); const t=translations[language];
+  const account=loadAccount(); const savedPseudo=account?account.pseudo:"";
 
   app.innerHTML=`<div class="menu">
       <button onclick="screen='home'; render()">${t.home}</button>
@@ -231,41 +141,29 @@ function render(){
     `;
   }
 
-  if(screen==="description"){app.innerHTML+=`<h3>📝 ${t.description}</h3><p>${t.descriptionText}</p>`;}
-  if(screen==="rules"){app.innerHTML+=`<h3>📜 ${t.rules}</h3><p>${t.rulesText.replace(/\n/g,"<br>")}</p>`;}
-  if(screen==="about"){app.innerHTML+=`<h3>ℹ️ ${t.about}</h3><p>${t.aboutText}</p>`;}
+  if(screen==="description"){ app.innerHTML+=`<h3>📝 ${t.description}</h3><p>${t.descriptionText}</p>`; }
+  if(screen==="rules"){ app.innerHTML+=`<h3>📜 ${t.rules}</h3><p>${t.rulesText.replace(/\n/,"<br>")}</p>`; }
+  if(screen==="about"){ app.innerHTML+=`<h3>ℹ️ ${t.about}</h3><p>${t.aboutText}</p>`; }
 
   if(screen==="lobby"){
     app.innerHTML+=`<p>Code : <b>${roomCode}</b></p>
       <ul>${players.map(p=>`<li>${p}</li>`).join("")}</ul>
       <p>(${players.length}/${maxPlayers})</p>`;
-    
     if(name===owner){
       const totalRoles=roleCounts.Impostor+roleCounts.Scammer+roleCounts["Try-Harder"];
       if(players.length===maxPlayers && totalRoles===maxPlayers){
         app.innerHTML+=`<button onclick="startGame()">${t.startGame}</button>`;
-      }else{
-        app.innerHTML+=`<p>${t.waiting}</p>`;
-      }
-    }else{
-      app.innerHTML+=`<p>${t.waitingOwner}</p>`;
-    }
+      } else app.innerHTML+=`<p>${t.waiting}</p>`;
+    } else app.innerHTML+=`<p>${t.waitingOwner}</p>`;
   }
 }
 
-// ------------------- Compte -------------------
-function savePseudoFromInput(){
-  const pseudo=document.getElementById("pseudo").value.trim();
-  if(!pseudo) return alert(translations[language].pseudoRequired);
-  saveAccount(pseudo);
-  name=pseudo;
-  render();
-}
+// -- Compte --
+function savePseudoFromInput(){ const pseudo=document.getElementById("pseudo").value.trim(); if(!pseudo) return alert(translations[language].pseudoRequired); saveAccount(pseudo); name=pseudo; render(); }
 
-// ------------------- SALON -------------------
+// -- Salon --
 async function createRoom(){
-  name=document.getElementById("pseudo").value.trim(); 
-  if(!name) return alert(translations[language].pseudoRequired);
+  name=document.getElementById("pseudo").value.trim(); if(!name) return alert(translations[language].pseudoRequired);
   maxPlayers=parseInt(document.getElementById("maxPlayersInput").value); adjustTryHarder();
   if(maxPlayers<2||maxPlayers>10) return alert(translations[language].numPlayers);
   if(roleCounts.Impostor+roleCounts.Scammer+roleCounts["Try-Harder"]!==maxPlayers) return alert("Role total must match players");
@@ -279,41 +177,39 @@ async function joinRoom(){
   roomCode=document.getElementById("code").value.trim().toUpperCase();
   if(!name) return alert(translations[language].pseudoRequired);
   if(!roomCode) return alert(translations[language].roomNotFound);
-  const snap = await db.ref("rooms/"+roomCode).get();
+  const snap=await db.ref("rooms/"+roomCode).get();
   if(!snap.exists()) return alert(translations[language].roomNotFound);
-  const data = snap.val();
-  players = data.players || []; owner = data.owner || "";
-  maxPlayers = data.maxPlayers || maxPlayers;
-  roleCounts = data.roleCounts || roleCounts;
-  votes = data.votes || {};
-  votedPlayers = data.votedPlayers || [];
-  if(players.length >= maxPlayers) return alert(translations[language].roomFull);
+  const data=snap.val();
+  players=data.players||[]; owner=data.owner||"";
+  maxPlayers=data.maxPlayers||maxPlayers;
+  roleCounts=data.roleCounts||roleCounts;
+  votes=data.votes||{};
+  votedPlayers=data.votedPlayers||[];
+  if(players.length>=maxPlayers) return alert(translations[language].roomFull);
   if(!players.includes(name)) players.push(name);
   await db.ref("rooms/"+roomCode+"/players").set(players);
   listenRoom(); screen="lobby"; render();
 }
 
-// ------------------- LISTEN ROOM -------------------
+// -- Listen Room --
 function listenRoom(){
   db.ref("rooms/"+roomCode).on("value",snap=>{
-    if(!snap.exists()) return; 
+    if(!snap.exists()) return;
     const data=snap.val();
-    players=data.players||[]; 
-    roles=data.roles||{}; 
-    owner=data.owner||""; 
-    maxPlayers=data.maxPlayers||maxPlayers; 
-    roleCounts=data.roleCounts||roles; 
-    votes=data.votes||{}; 
-    votedPlayers=data.votedPlayers||[]; 
-    screen=data.screen || (data.started?"role":"lobby");
+    players=data.players||[];
+    roles=data.roles||{};
+    owner=data.owner||"";
+    maxPlayers=data.maxPlayers||maxPlayers;
+    roleCounts=data.roleCounts||roleCounts; // CORRECT
+    votes=data.votes||{};
+    votedPlayers=data.votedPlayers||[];
+    screen=data.screen||(data.started?"role":"lobby");
     render();
   });
 }
 
-// Auto-load pseudo si compte existe
-const account = loadAccount();
-if(account) name = account.pseudo;
-
+// -- Auto-load pseudo --
+const account=loadAccount(); if(account) name=account.pseudo;
 render();
 </script>
 </body>
