@@ -289,57 +289,45 @@ function createRoom(){
   listenRoom(); screen="lobby"; render();
 }
 
-// 🔹 Fonction robuste joinRoom() avec transaction
-function joinRoom(){
+function joinRoom() {
   name = document.getElementById("pseudo").value.trim();
   roomCode = document.getElementById("code").value.trim().toUpperCase();
-  if(!name) return alert(translations[language].pseudoRequired);
-  if(!roomCode) return alert(translations[language].roomNotFound);
 
-  const roomRef = db.ref("rooms/"+roomCode);
-  listenRoom();
+  if (!name) return alert(translations[language].pseudoRequired);
+  if (!roomCode) return alert(translations[language].roomNotFound);
 
-  roomRef.transaction(currentData => {
-    if(currentData === null) {
-      alert(translations[language].roomNotFound);
+  const roomRef = db.ref("rooms/" + roomCode);
+
+  roomRef.get().then(snap => {
+    if (!snap.exists()) return alert(translations[language].roomNotFound);
+
+    let data = snap.val();
+    if (!data.players) data.players = [];
+
+    if (data.players.includes(name)) {
+      // Si déjà présent, juste passer au lobby
+      roomRef.update({ screen: "lobby" }).then(() => {
+        listenRoom();
+      });
       return;
     }
 
-    if(!currentData.players) currentData.players = [];
+    if (data.players.length >= data.maxPlayers) return alert(translations[language].roomFull);
 
-    if(currentData.players.includes(name)) {
-      currentData.screen = "lobby";
-      return currentData;
-    }
-
-    if(currentData.players.length >= currentData.maxPlayers) {
-      alert(translations[language].roomFull);
-      return; 
-    }
-
-    currentData.players.push(name);
-    currentData.screen = "lobby";
-    return currentData;
-  }, (error, committed, snapshot) => {
-    if(error) return console.error(error);
-    if(committed){
-      const data = snapshot.val();
-      players = data.players || [];
-      owner = data.owner || "";
-      maxPlayers = data.maxPlayers || maxPlayers;
-      roleCounts = data.roleCounts || roleCounts;
-      votes = data.votes || {};
-      votedPlayers = data.votedPlayers || [];
-      screen = data.screen || "lobby";
-      render();
-    }
+    // Ajouter le joueur
+    data.players.push(name);
+    roomRef.update({ players: data.players, screen: "lobby" }).then(() => {
+      listenRoom();
+    });
   });
 }
 
-// 🔹 Écoute en temps réel du salon
-function listenRoom(){
-  db.ref("rooms/"+roomCode).on("value", snap=>{
-    if(!snap.exists()) return;
+function listenRoom() {
+  if (!roomCode) return;
+
+  db.ref("rooms/" + roomCode).on("value", snap => {
+    if (!snap.exists()) return;
+
     const data = snap.val();
     players = data.players || [];
     roles = data.roles || {};
@@ -349,6 +337,10 @@ function listenRoom(){
     votes = data.votes || {};
     votedPlayers = data.votedPlayers || [];
     screen = data.screen || (data.started ? "role" : "lobby");
+
+    // Assurer que le joueur local est bien pris en compte
+    if (!players.includes(name)) players.push(name);
+
     render();
   });
 }
@@ -391,3 +383,4 @@ render();
 
 </body>
 </html>
+
